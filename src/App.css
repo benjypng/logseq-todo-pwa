@@ -63,7 +63,7 @@
 }
 
 .status-badge {
-  text-align: center;
+  text-align: left;
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 1px;
