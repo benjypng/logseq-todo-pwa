@@ -1,73 +1,74 @@
-# React + TypeScript + Vite
+# Logseq Todo PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, distraction-free Progressive Web App (PWA) designed to manage Logseq tasks on the go.
 
-Currently, two official plugins are available:
+This project connects directly to a running Logseq instance via the HTTP API, allowing you to view and complete tasks without opening the full Logseq mobile app. It features a "Focus Mode" to help you concentrate on one task at a time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Why build this?
+* **Distraction-Free:** Looking at a massive task list in Logseq can be overwhelming. This app isolates tasks to help you focus.
+* **Reliable Sync:** By connecting to a desktop instance hosted on a home server, sync issues are minimized. Changes update in real-time.
+* **Speed:** A dedicated PWA is often faster and lighter than loading the full Logseq graph on mobile.
 
-## React Compiler
+## ✨ Features
+* **Focus Mode:** View one task at a time.
+* **Real-time Sync:** Changes (completing a task) are reflected immediately in your Logseq graph.
+* **Mobile Optimized:** Designed as a PWA; installable on iOS and Android for a native app-like experience.
+* **Secure Access:** Designed to run behind a VPN (Tailscale) for secure remote access without exposing ports to the public internet.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Prerequisites
+Before running the app, ensure you have the following setup:
 
-## Expanding the ESLint configuration
+1.  **Logseq Desktop** running on a generic machine (or a VM/Home Server).
+2.  **Tailscale** (or another VPN) set up to allow remote access to that machine.
+3.  **Node.js** or **Bun** installed on the machine hosting the PWA.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ⚙️ Configuration
+### 1. Configure Logseq API
+1.  Open Logseq on your host machine.
+2.  Go to **Settings** > **Features** and enable the **HTTP API Server**.
+3.  Set a secure **Authorization Token**.
+4.  Note the **API Server Host** and **Port** (default is usually `127.0.0.1:12315`).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 2. Setup the PWA
+Clone the repository and install dependencies:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+    git clone [https://github.com/benjypng/logseq-todo-pwa.git](https://github.com/benjypng/logseq-todo-pwa.git)
+    cd logseq-todo-pwa
+    npm install 
+    # OR if using Bun
+    bun install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 3. Environment Variables
+Create a `.env` file in the root directory and add your Logseq API token:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+    VITE_LOGSEQ_API_TOKEN=your_secret_token_here
+    VITE_LOGSEQ_API_URL=[http://127.0.0.1:12315](http://127.0.0.1:12315)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🏃‍♂️ Usage
+### Running Locally
+Run the development server with the host flag to expose it to your local network/VPN:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+    # Using npm
+    npm run dev -- --host
+
+    # Using Bun
+    bun run dev -- --host
+
+Ensure the app is accessible by visiting `http://<YOUR_SERVER_IP>:5173` from another device on the same network.
+
+### Accessing on Mobile (Tailscale)
+1.  **Enable Tailscale** on your mobile device.
+2.  Open your mobile browser and navigate to `http://<YOUR_TAILSCALE_IP>:5173`.
+3.  **Install as PWA**:
+    * **iOS:** Tap the "Share" button -> "Add to Home Screen".
+    * **Android:** Tap the menu (three dots) -> "Install App" or "Add to Home Screen".
+
+### (Optional) DNS Setup
+For easier access, configure your router or local DNS to map a friendly name to your server IP.
+* Example: Access via `http://logseq-tasks:5173` instead of the raw IP address.
+
+## 📝 Query Logic
+By default, the app pulls blocks that match specific criteria (e.g., tagged with `#Task` or explicitly marked as `TODO`). You can modify the query logic in `src/api.ts` or `src/hooks/use-tasks.ts` to fit your workflow.
+
+## 📄 License
+[MIT](LICENSE)
