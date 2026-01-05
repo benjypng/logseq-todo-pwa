@@ -1,0 +1,167 @@
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  font-size: 1.25rem;
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+  user-select: none;
+}
+
+.task-item:hover {
+  opacity: 0.7;
+}
+
+.task-item.done {
+  color: #ccc;
+  text-decoration: line-through;
+}
+
+.empty-state {
+  color: var(--secondary-color);
+  text-align: center;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.focused-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-color);
+  z-index: 500; /* Covers the list */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  padding: 40px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.focused-content h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.status-badge {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: var(--secondary-color);
+  border: 1px solid #eee;
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  width: 100%;
+}
+
+.fab {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+  z-index: 1000;
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fab-bottom-right {
+  bottom: 40px;
+  right: 40px;
+}
+
+.fab-top-right {
+  top: 40px;
+  right: 40px;
+}
+
+.fab.primary {
+  background-color: var(--accent-color);
+}
+
+.fab.secondary {
+  background-color: #f0f0f0;
+  color: #333;
+  box-shadow: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.95
+  ); /* High opacity white for clean look */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 500px;
+}
+
+.hero-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  font-size: 2rem;
+  padding: 10px 0;
+  outline: none;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+
+.hero-input:focus {
+  border-bottom-color: var(--accent-color);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
