@@ -5,6 +5,11 @@ export const useTodos = () => {
   return useQuery({
     queryKey: ['todos'],
     queryFn: getTasksFromLogseq,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMount: true,
+    refetchInterval: 2000,
+    staleTime: 0,
     select: (data) =>
       data
         .sort((a, b) => b.status.localeCompare(a.status))
