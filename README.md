@@ -4,6 +4,8 @@ A lightweight, distraction-free Progressive Web App (PWA) designed to manage Log
 
 This project connects directly to a running Logseq instance via the HTTP API, allowing you to view and complete tasks without opening the full Logseq mobile app. It features a "Focus Mode" to help you concentrate on one task at a time.
 
+![](./demo.gif)
+
 ## 🚀 Why build this?
 * **Distraction-Free:** Looking at a massive task list in Logseq can be overwhelming. This app isolates tasks to help you focus.
 * **Reliable Sync:** By connecting to a desktop instance hosted on a home server, sync issues are minimized. Changes update in real-time.
