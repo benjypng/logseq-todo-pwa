@@ -1,10 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import {
-  getTasksFromLogseq,
   addTaskToLogseq,
-  markTaskAsDone,
+  getTasksFromLogseq,
   markTaskAsDoing,
+  markTaskAsDone,
 } from '../api'
+import { PRIORITY_WEIGHT } from '../constants'
 
 export const useTodos = () => {
   return useQuery({
@@ -17,8 +19,9 @@ export const useTodos = () => {
     staleTime: 0,
     select: (data) =>
       data
-        .sort((a, b) => b.status.localeCompare(a.status))
-        .filter((item) => item.status === 'Todo')
+        .sort(
+          (a, b) => PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority],
+        )
         .filter((item) => item['full-title'] !== '')
         .filter((item) => item['full-title'] !== 'All')
         .filter((item) => item['full-title'] !== 'Linked references'),

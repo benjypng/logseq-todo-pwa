@@ -1,7 +1,8 @@
 import { format } from 'date-fns'
 import wretch from 'wretch'
-import { TASK_STATUS_KEY, BASE_URL } from './constants'
-import type { BaseLogseqBlock, LogseqTask, TaskStatus } from './types'
+
+import { BASE_URL,TASK_STATUS_KEY } from './constants'
+import type { BaseLogseqBlock, LogseqTask, Priority, TaskStatus } from './types'
 
 const api = wretch()
   .url(BASE_URL)
@@ -19,30 +20,43 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
     .post({
       method: 'logseq.DB.datascriptQuery',
       args: [
-        `[:find (pull ?b [*]) ?status
-        :where
-        [?t :block/name "task"]
-        [?b :block/refs ?t]
-        (or
-          (and 
-            [?b :logseq.property/status ?s]  
-            [?s :block/title ?status]        
-          )
-          (and 
-            (not [?b :logseq.property/status])
-            [(ground "Todo") ?status]        
-            [(ground -1) ?s]                
-          )
-        )
-       ]`,
+        `[:find (pull ?b [*]) ?status ?priority
+          :where
+            [?t :block/name "task"]
+            [?b :block/refs ?t]
+            (or
+              (and
+                [?b :logseq.property/status ?s]
+                [?s :block/title ?status]
+              )
+              (and
+                (not [?b :logseq.property/status])
+                [(ground "Todo") ?status]
+                [(ground -1) ?s]  
+              )
+            )
+            [(!= ?status "Done")]
+            (or
+              (and
+                [?b :logseq.property/priority ?p]
+                [?p :block/title ?priority]
+              )
+              (and
+                (not [?b :logseq.property/priority])
+                [(ground "None") ?priority]
+                [(ground -1) ?p] 
+              )
+            )
+         ]`,
       ],
     })
-    .json<[LogseqTask, TaskStatus][]>()
+    .json<[LogseqTask, TaskStatus, Priority][]>()
 
-  const mappedTasks = allTasks.map(([logseqTask, taskStatus]) => {
+  const mappedTasks = allTasks.map(([logseqTask, taskStatus, priority]) => {
     return {
       ...logseqTask,
       status: taskStatus,
+      priority: priority,
     }
   })
 

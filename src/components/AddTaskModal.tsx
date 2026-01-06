@@ -1,7 +1,8 @@
-import { Modal, Input } from '@mantine/core'
+import { Input,Modal } from '@mantine/core'
 import { Controller, useForm } from 'react-hook-form'
-import type { AddTaskModalProps, FormValues } from '../types'
+
 import { useAddTodo } from '../hooks'
+import type { AddTaskModalProps, FormValues } from '../types'
 
 export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({

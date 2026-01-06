@@ -1,6 +1,7 @@
-import { Text, Stack, ActionIcon, Title, Badge } from '@mantine/core'
+import { ActionIcon, Badge, Stack, Text, Title } from '@mantine/core'
 import { format } from 'date-fns'
 import { useEffect } from 'react'
+
 import { useDoneTodo } from '../hooks/use-tasks'
 import type { SelectedTaskProps } from '../types'
 
@@ -29,7 +30,7 @@ export const SelectedTask = ({
     }
     window.addEventListener('keydown', kbShortcut)
     return () => window.removeEventListener('keydown', kbShortcut)
-  }, [])
+  }, [handleComplete])
 
   return (
     <Stack

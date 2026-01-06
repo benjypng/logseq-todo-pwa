@@ -12,10 +12,14 @@ export interface LogseqTask {
   ['created-at']: number
   ['updated-at']: number
   [':logseq.property/status']: number
+  [':logseq.property/priority']: number
   status: TaskStatus
+  priority: Priority
 }
 
 export type TaskStatus = 'Todo' | 'Done' | 'Doing'
+
+export type Priority = 'Urgent' | 'High' | 'Medium' | 'Low' | 'None'
 
 export interface FormValues {
   task: string
