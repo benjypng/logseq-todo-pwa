@@ -1,6 +1,6 @@
 import '@mantine/core/styles.css'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useTodos } from './hooks'
 import type { LogseqTask } from './types'
@@ -31,9 +31,11 @@ export default function App() {
         e.preventDefault()
       }
     }
-    window.addEventListener('keydown', kbShortcut)
-    return () => window.removeEventListener('keydown', kbShortcut)
-  }, [])
+    if (!opened) {
+      window.addEventListener('keydown', kbShortcut)
+      return () => window.removeEventListener('keydown', kbShortcut)
+    }
+  }, [opened])
 
   return (
     <MantineProvider>
