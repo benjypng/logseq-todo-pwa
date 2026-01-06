@@ -2,7 +2,7 @@ import '@mantine/core/styles.css'
 
 import { useEffect, useRef, useState } from 'react'
 
-import { useTodos } from './hooks'
+import { useDoingTodo, useTodos } from './hooks'
 import type { LogseqTask } from './types'
 import {
   ActionIcon,
@@ -23,6 +23,7 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
 
   const { data: todos, isLoading } = useTodos()
+  const doingMutation = useDoingTodo()
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
@@ -36,6 +37,11 @@ export default function App() {
       return () => window.removeEventListener('keydown', kbShortcut)
     }
   }, [opened])
+
+  const handleSelectedTask = (task: LogseqTask) => {
+    setSelectedTask(task)
+    doingMutation.mutate(task.uuid)
+  }
 
   return (
     <MantineProvider>
@@ -63,7 +69,7 @@ export default function App() {
                   <UnstyledButton
                     py="sm"
                     w="100%"
-                    onClick={() => setSelectedTask(task)}
+                    onClick={() => handleSelectedTask(task)}
                     td={task.status === 'Done' ? 'line-through' : undefined}
                     c={task.status === 'Done' ? 'dimmed' : undefined}
                     opacity={task.status === 'Done' ? 0.5 : 1}
