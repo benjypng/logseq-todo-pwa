@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getTasksFromLogseq, addTaskToLogseq, markTaskAsDone } from '../api'
+import {
+  getTasksFromLogseq,
+  addTaskToLogseq,
+  markTaskAsDone,
+  markTaskAsDoing,
+} from '../api'
 
 export const useTodos = () => {
   return useQuery({
@@ -34,6 +39,16 @@ export const useDoneTodo = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: markTaskAsDone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] })
+    },
+  })
+}
+
+export const useDoingTodo = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: markTaskAsDoing,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
     },
