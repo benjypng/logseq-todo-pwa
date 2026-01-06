@@ -14,3 +14,7 @@ export interface LogseqTask {
 }
 
 export type TaskStatus = 'Todo' | 'Done'
+
+export interface FormValues {
+  task: string
+}
