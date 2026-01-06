@@ -77,3 +77,12 @@ export const markTaskAsDone = async (uuid: string) => {
     })
     .json<BaseLogseqBlock>()
 }
+
+export const markTaskAsDoing = async (uuid: string) => {
+  await api
+    .post({
+      method: 'logseq.Editor.upsertBlockProperty',
+      args: [uuid, TASK_STATUS_KEY, 'Doing'],
+    })
+    .json<BaseLogseqBlock>()
+}

@@ -1,112 +1,106 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import './App.css'
+import '@mantine/core/styles.css'
 
-import { useTodos, useAddTodo, useDoneTodo } from './hooks/use-tasks'
+import { useEffect, useState } from 'react'
+
+import { useTodos } from './hooks'
 import type { LogseqTask } from './types'
-import { format } from 'date-fns'
+import {
+  ActionIcon,
+  Box,
+  Center,
+  Container,
+  Divider,
+  Loader,
+  MantineProvider,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core'
+import { AddTaskModal, SelectedTask } from './components'
 
 export default function App() {
   const [opened, setOpened] = useState(false)
   const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
 
   const { data: todos, isLoading } = useTodos()
-  const addMutation = useAddTodo()
-  const toggleMutation = useDoneTodo()
 
-  const { register, handleSubmit, reset } = useForm<{ text: string }>()
-
-  const onSubmit = (data: { text: string }) => {
-    if (!data.text.trim()) return
-    addMutation.mutate(data.text, {
-      onSuccess: () => {
-        setOpened(false)
-        reset()
-      },
-    })
-  }
-
-  const handleComplete = () => {
-    if (selectedTask) {
-      toggleMutation.mutate(selectedTask.uuid)
-      setSelectedTask(null)
+  useEffect(() => {
+    const kbShortcut = (e: KeyboardEvent) => {
+      if (e.key === 'a') {
+        setOpened(true)
+        e.preventDefault()
+      }
     }
-  }
+    window.addEventListener('keydown', kbShortcut)
+    return () => window.removeEventListener('keydown', kbShortcut)
+  }, [])
 
   return (
-    <div className="app-container">
-      {selectedTask ? (
-        <div className="focused-page">
-          <button
-            className="fab fab-top-right secondary"
-            onClick={() => setSelectedTask(null)}
-          >
-            ✕
-          </button>
+    <MantineProvider>
+      <Container size="xs" mah="100vh" py="xl">
+        {isLoading && (
+          <Center mt="xl">
+            <Loader color="dark" type="dots" />
+          </Center>
+        )}
 
-          <div className="focused-content">
-            <h1>{selectedTask['full-title']}</h1>
-            <div
-              className={`status-badge ${selectedTask.status.toLowerCase()}`}
+        {!isLoading && (
+          <Stack
+            gap={0}
+            justify="center"
+            h={todos?.length === 0 ? undefined : '100%'}
+            mih="80vh"
+          >
+            {todos?.length === 0 ? (
+              <Center h="50vh">
+                <Text c="dimmed">No tasks yet.</Text>
+              </Center>
+            ) : (
+              todos?.map((task) => (
+                <Box key={task.uuid}>
+                  <UnstyledButton
+                    py="sm"
+                    w="100%"
+                    onClick={() => setSelectedTask(task)}
+                    td={task.status === 'Done' ? 'line-through' : undefined}
+                    c={task.status === 'Done' ? 'dimmed' : undefined}
+                    opacity={task.status === 'Done' ? 0.5 : 1}
+                  >
+                    <Text size="xl">{task['full-title']}</Text>
+                  </UnstyledButton>
+                  <Divider color="gray.2" />
+                </Box>
+              ))
+            )}
+          </Stack>
+        )}
+
+        {!isLoading && selectedTask ? (
+          <SelectedTask
+            selectedTask={selectedTask}
+            setSelectedTask={setSelectedTask}
+          />
+        ) : (
+          <>
+            <ActionIcon
+              size={60}
+              radius="xl"
+              color="dark"
+              variant="filled"
+              pos="fixed"
+              bottom={40}
+              right={40}
+              onClick={() => setOpened(true)}
             >
-              {format(selectedTask['created-at'], 'MMM do, yyyy')}
-            </div>
-          </div>
+              <Text size="xl" fw={700}>
+                +
+              </Text>
+            </ActionIcon>
+          </>
+        )}
 
-          <button
-            className="fab fab-bottom-right primary"
-            onClick={handleComplete}
-          >
-            ✓
-          </button>
-        </div>
-      ) : (
-        <>
-          {isLoading && (
-            <div style={{ textAlign: 'center', marginTop: 20 }}>Loading...</div>
-          )}
-
-          <div className="todo-list">
-            {todos?.map((task) => (
-              <div
-                key={task.uuid}
-                className={`task-item ${task.status.toLowerCase()}`}
-                // OPEN FOCUS VIEW INSTEAD OF TOGGLING
-                onClick={() => setSelectedTask(task)}
-              >
-                {task['full-title']}
-              </div>
-            ))}
-          </div>
-
-          {!isLoading && todos?.length === 0 && (
-            <div className="empty-state">No tasks yet.</div>
-          )}
-
-          <button
-            className="fab fab-bottom-right primary"
-            onClick={() => setOpened(true)}
-          >
-            +
-          </button>
-        </>
-      )}
-
-      {opened && (
-        <div className="modal-overlay" onClick={() => setOpened(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <input
-                className="hero-input"
-                autoFocus
-                placeholder="What needs to be done?"
-                autoComplete="off"
-                {...register('text', { required: true })}
-              />
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+        {!isLoading && <AddTaskModal opened={opened} setOpened={setOpened} />}
+      </Container>
+    </MantineProvider>
   )
 }

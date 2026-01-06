@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from 'react'
+
 export interface BaseLogseqBlock {
   fullTitle: string
   uuid: string
@@ -13,4 +15,18 @@ export interface LogseqTask {
   status: TaskStatus
 }
 
-export type TaskStatus = 'Todo' | 'Done'
+export type TaskStatus = 'Todo' | 'Done' | 'Doing'
+
+export interface FormValues {
+  task: string
+}
+
+export interface SelectedTaskProps {
+  selectedTask: LogseqTask
+  setSelectedTask: Dispatch<SetStateAction<LogseqTask | null>>
+}
+
+export interface AddTaskModalProps {
+  opened: boolean
+  setOpened: Dispatch<SetStateAction<boolean>>
+}
