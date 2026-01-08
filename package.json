@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky",
+    "lint:precommit": "echo \"Running eslint\" && npx eslint . --fix && echo \"Running tsc\" && tsc && echo \"Running build\" && bun run build"
   },
   "dependencies": {
     "@fontsource/work-sans": "^5.2.8",
