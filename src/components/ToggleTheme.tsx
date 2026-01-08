@@ -18,9 +18,9 @@ export const ToggleTheme = () => {
       variant="default"
       size="xl"
       aria-label="Toggle color scheme"
+      bd="none"
     >
       {computedColorScheme === 'light' ? (
-        // Moon Icon (Show when Light)
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -35,7 +35,6 @@ export const ToggleTheme = () => {
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
         </svg>
       ) : (
-        // Sun Icon (Show when Dark)
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"

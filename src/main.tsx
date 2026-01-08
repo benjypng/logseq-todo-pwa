@@ -13,7 +13,10 @@ const queryClient = new QueryClient()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={{ fontFamily: 'Work Sans' }}>
+      <MantineProvider
+        theme={{ fontFamily: 'Work Sans' }}
+        defaultColorScheme="auto"
+      >
         <App />
       </MantineProvider>
     </QueryClientProvider>

@@ -39,7 +39,7 @@ export const SelectedTask = ({
       left={0}
       w="100%"
       h="100%"
-      bg="white"
+      bg="body"
       justify="center"
       p={40}
     >
@@ -67,7 +67,6 @@ export const SelectedTask = ({
       <ActionIcon
         size={60}
         radius="xl"
-        color="dark"
         variant="filled"
         pos="fixed"
         bottom={40}
