@@ -13,8 +13,9 @@ import {
 import { useEffect, useState } from 'react'
 
 import { AddTaskModal, SelectedTask } from './components'
+import { ToggleTheme } from './components/ToggleTheme'
 import { useDoingTodo, useTodos } from './hooks'
-import type { LogseqTask, Priority } from './types'
+import type { LogseqTask } from './types'
 
 export default function App() {
   const [opened, setOpened] = useState(false)
@@ -58,6 +59,9 @@ export default function App() {
 
   return (
     <Container size="xs" mah="100vh" py="xl">
+      <Box pos="absolute" top={20} right={20}>
+        <ToggleTheme />
+      </Box>
       {isLoading && (
         <Center mt="xl">
           <Loader color="dark" type="dots" />
