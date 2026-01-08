@@ -1,6 +1,6 @@
 import { ActionIcon, Badge, Stack, Text, Title } from '@mantine/core'
 import { format } from 'date-fns'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import { useDoneTodo } from '../hooks/use-tasks'
 import type { SelectedTaskProps } from '../types'
@@ -11,12 +11,12 @@ export const SelectedTask = ({
 }: SelectedTaskProps) => {
   const toggleMutation = useDoneTodo()
 
-  const handleComplete = () => {
+  const handleComplete = useCallback(() => {
     if (selectedTask) {
       toggleMutation.mutate(selectedTask.uuid)
       setSelectedTask(null)
     }
-  }
+  }, [selectedTask, setSelectedTask, toggleMutation])
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
