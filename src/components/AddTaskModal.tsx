@@ -1,5 +1,4 @@
 import { Input, Modal } from '@mantine/core'
-import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useAddTodo } from '../hooks'
@@ -7,7 +6,7 @@ import type { AddTaskModalProps, FormValues } from '../types'
 import { getPriorityFromTask } from '../utils/get-priority-from-task'
 
 export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
-  const { control, handleSubmit, reset, setFocus } = useForm<FormValues>({
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: { task: '' },
   })
   const addMutation = useAddTodo()
@@ -25,14 +24,6 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
       },
     )
   }
-
-  useEffect(() => {
-    if (opened) {
-      setTimeout(() => {
-        setFocus('task')
-      }, 200)
-    }
-  }, [opened, setFocus])
 
   return (
     <Modal
@@ -52,7 +43,6 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
           render={({ field }) => (
             <Input
               {...field}
-              data-autofocus
               placeholder="What needs to be done?"
               variant="unstyled"
               size="xl"

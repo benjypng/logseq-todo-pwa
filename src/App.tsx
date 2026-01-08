@@ -60,9 +60,9 @@ export default function App() {
   return (
     <Container size="xs" mah="100vh" py="xl">
       {!selectedTask && (
-        <Center>
+        <Group pos="fixed" left={40}>
           <ToggleTheme />
-        </Center>
+        </Group>
       )}
 
       {isLoading && (
