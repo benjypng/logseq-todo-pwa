@@ -1,8 +1,9 @@
-import { Input,Modal } from '@mantine/core'
+import { Input, Modal } from '@mantine/core'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useAddTodo } from '../hooks'
 import type { AddTaskModalProps, FormValues } from '../types'
+import { getPriorityFromTask } from '../utils/get-priority-from-task'
 
 export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({
@@ -12,12 +13,16 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
 
   const onSubmit = (data: FormValues) => {
     if (!data.task.trim()) return
-    addMutation.mutate(data.task, {
-      onSuccess: () => {
-        setOpened(false)
-        reset()
+
+    addMutation.mutate(
+      { task: data.task, priority: getPriorityFromTask(data.task) },
+      {
+        onSuccess: () => {
+          setOpened(false)
+          reset()
+        },
       },
-    })
+    )
   }
 
   return (

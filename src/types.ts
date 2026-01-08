@@ -34,3 +34,8 @@ export interface AddTaskModalProps {
   opened: boolean
   setOpened: Dispatch<SetStateAction<boolean>>
 }
+
+export interface AddTaskMutationProps {
+  task: string
+  priority: Priority
+}

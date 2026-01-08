@@ -5,6 +5,7 @@ import {
   getTasksFromLogseq,
   markTaskAsDoing,
   markTaskAsDone,
+  setTaskPriority,
 } from '../api'
 import { PRIORITY_WEIGHT } from '../constants'
 

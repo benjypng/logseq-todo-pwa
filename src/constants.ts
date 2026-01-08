@@ -4,6 +4,8 @@ export const BASE_URL = '/logseq-api/api'
 
 export const TASK_STATUS_KEY = ':logseq.property/status'
 
+export const TASK_PRIORITY_KEY = ':logseq.property/priority'
+
 export const PRIORITY_WEIGHT: Record<Priority, number> = {
   Urgent: 0,
   High: 1,

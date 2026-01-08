@@ -1,8 +1,14 @@
 import { format } from 'date-fns'
 import wretch from 'wretch'
 
-import { BASE_URL,TASK_STATUS_KEY } from './constants'
-import type { BaseLogseqBlock, LogseqTask, Priority, TaskStatus } from './types'
+import { BASE_URL, TASK_PRIORITY_KEY, TASK_STATUS_KEY } from './constants'
+import type {
+  AddTaskMutationProps,
+  BaseLogseqBlock,
+  LogseqTask,
+  Priority,
+  TaskStatus,
+} from './types'
 
 const api = wretch()
   .url(BASE_URL)
@@ -63,7 +69,10 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   return mappedTasks.flat()
 }
 
-export const addTaskToLogseq = async (task: string) => {
+export const addTaskToLogseq = async ({
+  task,
+  priority,
+}: AddTaskMutationProps) => {
   const todayDate = format(new Date(), 'MMM do, yyyy')
   try {
     const createdBlock = await api
@@ -76,6 +85,12 @@ export const addTaskToLogseq = async (task: string) => {
       .post({
         method: 'logseq.Editor.addBlockTag',
         args: [createdBlock.uuid, 'task'],
+      })
+      .json<BaseLogseqBlock>()
+    await api
+      .post({
+        method: 'logseq.Editor.upsertBlockProperty',
+        args: [createdBlock.uuid, TASK_PRIORITY_KEY, priority],
       })
       .json<BaseLogseqBlock>()
   } catch (e) {
