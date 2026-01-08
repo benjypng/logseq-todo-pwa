@@ -30,7 +30,7 @@ export const SelectedTask = ({
     }
     window.addEventListener('keydown', kbShortcut)
     return () => window.removeEventListener('keydown', kbShortcut)
-  }, [handleComplete])
+  }, [handleComplete, setSelectedTask])
 
   return (
     <Stack
