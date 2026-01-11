@@ -15,11 +15,18 @@ export interface LogseqTask {
   [':logseq.property/priority']: number
   status: TaskStatus
   priority: Priority
+  taskType: TaskType
 }
 
 export type TaskStatus = 'Todo' | 'Done' | 'Doing'
 
 export type Priority = 'Urgent' | 'High' | 'Medium' | 'Low' | 'None'
+
+export interface TagExtension {
+  name: TaskType
+}
+
+export type TaskType = 'task' | 'errand'
 
 export interface FormValues {
   task: string

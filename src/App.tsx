@@ -10,6 +10,7 @@ import {
   Text,
   UnstyledButton,
 } from '@mantine/core'
+import { IconPlus, IconShoppingCart,IconShovel } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 
 import { AddTaskModal, SelectedTask } from './components'
@@ -20,6 +21,7 @@ import type { LogseqTask } from './types'
 export default function App() {
   const [opened, setOpened] = useState(false)
   const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
+  const [isErrand, setIsErrand] = useState(false)
 
   const { data: todos, isLoading } = useTodos()
   const doingMutation = useDoingTodo()
@@ -58,15 +60,39 @@ export default function App() {
   }
 
   return (
-    <Container size="xs" mah="100vh" py="xl">
+    <Container
+      size="xs"
+      h="100dvh"
+      py="xl"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        overflowX: 'hidden',
+      }}
+    >
       {!selectedTask && (
-        <Group pos="fixed" left={40}>
+        <Group
+          pos="fixed"
+          left={40}
+          justify="space-between"
+          style={{ zIndex: 10 }}
+        >
           <ToggleTheme />
+          <ActionIcon
+            size={60}
+            radius="md"
+            variant="outline"
+            color="gray"
+            style={{ border: 0 }}
+            onClick={() => setIsErrand(!isErrand)}
+          >
+            {isErrand ? <IconShovel /> : <IconShoppingCart />}
+          </ActionIcon>
         </Group>
       )}
 
       {isLoading && (
-        <Center mt="xl">
+        <Center h="100%">
           <Loader type="dots" />
         </Center>
       )}
@@ -82,53 +108,65 @@ export default function App() {
             <Stack
               gap={0}
               justify="center"
-              h={todos?.length === 0 ? undefined : '100%'}
-              mih="80vh"
+              h="100%"
+              w="100%"
+              style={{ overflowY: 'auto' }}
             >
               {todos?.length === 0 ? (
-                <Center h="50vh">
+                <Center>
                   <Text c="dimmed">No tasks yet.</Text>
                 </Center>
               ) : (
-                todos?.map((task) => (
-                  <Box key={task.uuid}>
-                    <UnstyledButton
-                      py="md"
-                      w="100%"
-                      onClick={() => handleSelectedTask(task)}
-                      style={{ transition: 'background-color 0.2s' }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor =
-                          'var(--mantine-color-default-hover)')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'transparent')
-                      }
-                    >
-                      <Group gap="md" align="center" wrap="nowrap">
-                        <Box
-                          w={4}
-                          h={40}
-                          bg={getPriorityColor(task.priority)}
-                          style={{ borderRadius: 4, flexShrink: 0 }}
-                        />
-                        <Text
-                          size="lg"
-                          fw={500}
-                          td={
-                            task.status === 'Done' ? 'line-through' : undefined
-                          }
-                          c={task.status === 'Done' ? 'dimmed' : undefined}
-                          opacity={task.status === 'Done' ? 0.5 : 1}
-                          style={{ flex: 1 }}
-                        >
-                          {task['full-title']}
-                        </Text>
-                      </Group>
-                    </UnstyledButton>
-                    <Divider />
-                  </Box>
-                ))
+                todos
+                  ?.filter(
+                    (task) => task.taskType === (isErrand ? 'errand' : 'task'),
+                  )
+                  .map((task) => (
+                    <Box key={task.uuid} w="100%">
+                      <UnstyledButton
+                        py="md"
+                        w="100%"
+                        onClick={() => handleSelectedTask(task)}
+                        style={{ transition: 'background-color 0.2s' }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            'var(--mantine-color-default-hover)')
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            'transparent')
+                        }
+                      >
+                        <Group gap="md" align="center" wrap="nowrap" w="100%">
+                          <Box
+                            w={4}
+                            h={40}
+                            bg={getPriorityColor(task.priority)}
+                            style={{ borderRadius: 4, flexShrink: 0 }}
+                          />
+                          <Text
+                            size="lg"
+                            fw={500}
+                            td={
+                              task.status === 'Done'
+                                ? 'line-through'
+                                : undefined
+                            }
+                            c={task.status === 'Done' ? 'dimmed' : undefined}
+                            opacity={task.status === 'Done' ? 0.5 : 1}
+                            style={{
+                              flex: 1,
+                              wordBreak: 'break-word',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            {task['full-title']}
+                          </Text>
+                        </Group>
+                      </UnstyledButton>
+                      <Divider />
+                    </Box>
+                  ))
               )}
             </Stack>
 
@@ -141,9 +179,7 @@ export default function App() {
               right={40}
               onClick={() => setOpened(true)}
             >
-              <Text size="xl" fw={700}>
-                +
-              </Text>
+              <IconPlus />
             </ActionIcon>
           </>
         )

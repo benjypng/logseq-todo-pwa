@@ -7,6 +7,7 @@ import type {
   BaseLogseqBlock,
   LogseqTask,
   Priority,
+  TagExtension,
   TaskStatus,
 } from './types'
 
@@ -26,10 +27,19 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
     .post({
       method: 'logseq.DB.datascriptQuery',
       args: [
-        `[:find (pull ?b [*]) ?status ?priority
+        `[:find (pull ?b [*]) ?status ?priority (pull ?actual-tag [:block/name :block/original-name])
           :where
-            [?t :block/name "task"]
-            [?b :block/refs ?t]
+            (or-join [?b ?actual-tag]
+              (and
+                [?actual-tag :block/name "task"]
+                [?b :block/refs ?actual-tag]
+              )
+              (and
+                [?parent :block/title "Task"]
+                [?actual-tag :logseq.property.class/extends ?parent]
+                [?b :block/tags ?actual-tag]
+              )
+            )
             (or
               (and
                 [?b :logseq.property/status ?s]
@@ -52,19 +62,21 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
                 [(ground "None") ?priority]
                 [(ground -1) ?p] 
               )
-            )
-         ]`,
+            )]`,
       ],
     })
-    .json<[LogseqTask, TaskStatus, Priority][]>()
+    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>()
 
-  const mappedTasks = allTasks.map(([logseqTask, taskStatus, priority]) => {
-    return {
-      ...logseqTask,
-      status: taskStatus,
-      priority: priority,
-    }
-  })
+  const mappedTasks = allTasks.map(
+    ([logseqTask, taskStatus, priority, tagExtension]) => {
+      return {
+        ...logseqTask,
+        status: taskStatus,
+        priority: priority,
+        taskType: tagExtension.name,
+      }
+    },
+  )
 
   return mappedTasks.flat()
 }

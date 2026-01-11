@@ -24,7 +24,8 @@ export const useTodos = () => {
         )
         .filter((item) => item['full-title'] !== '')
         .filter((item) => item['full-title'] !== 'All')
-        .filter((item) => item['full-title'] !== 'Linked references'),
+        .filter((item) => item['full-title'] !== 'Linked references')
+        .filter((item) => item['full-title'] !== 'Errand'),
   })
 }
 
