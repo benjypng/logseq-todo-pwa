@@ -18,6 +18,12 @@ export interface LogseqTask {
   taskType: TaskType
 }
 
+export interface Expense {
+  label: string
+  value: number
+  createdAt: number
+}
+
 export type TaskStatus = 'Todo' | 'Done' | 'Doing'
 
 export type Priority = 'Urgent' | 'High' | 'Medium' | 'Low' | 'None'
@@ -45,4 +51,16 @@ export interface AddTaskModalProps {
 export interface AddTaskMutationProps {
   task: string
   priority: Priority
+  type: 'task' | 'errand'
+}
+
+export interface AddExpenseMutationProps {
+  label: string
+  value: number
+}
+
+export interface TaskListProps {
+  tasks: LogseqTask[] | undefined
+  type: 'task' | 'errand'
+  onSelect: (task: LogseqTask) => void
 }

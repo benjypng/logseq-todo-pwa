@@ -2,27 +2,53 @@ import { Input, Modal } from '@mantine/core'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useAddTodo } from '../hooks'
+import { useAddExpense } from '../hooks/use-expense'
 import type { AddTaskModalProps, FormValues } from '../types'
-import { getPriorityFromTask } from '../utils/get-priority-from-task'
+import { getPriorityFromTask, parseExpense } from '../utils'
 
 export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: { task: '' },
   })
-  const addMutation = useAddTodo()
+  const addTaskMutation = useAddTodo()
+  const addExpenseMutation = useAddExpense()
 
   const onSubmit = (data: FormValues) => {
     if (!data.task.trim()) return
 
-    addMutation.mutate(
-      { task: data.task, priority: getPriorityFromTask(data.task) },
-      {
-        onSuccess: () => {
-          setOpened(false)
-          reset()
+    if (data.task.includes('$')) {
+      const parsedExpense = parseExpense(data.task)
+      if (!parsedExpense) return
+
+      addExpenseMutation.mutate(
+        {
+          label: parsedExpense.label,
+          value: parsedExpense.value,
         },
-      },
-    )
+        {
+          onSuccess: () => {
+            setOpened(false)
+            reset()
+          },
+        },
+      )
+    } else {
+      const type = data.task.includes('#errand') ? 'errand' : 'task'
+
+      addTaskMutation.mutate(
+        {
+          task: data.task,
+          priority: getPriorityFromTask(data.task),
+          type: type,
+        },
+        {
+          onSuccess: () => {
+            setOpened(false)
+            reset()
+          },
+        },
+      )
+    }
   }
 
   return (

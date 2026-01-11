@@ -1,2 +1,6 @@
 export * from './AddTaskModal'
+export * from './ErrandList'
+export * from './ExpenseList'
 export * from './SelectedTask'
+export * from './TaskList'
+export * from './ToggleTheme'

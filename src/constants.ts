@@ -13,3 +13,5 @@ export const PRIORITY_WEIGHT: Record<Priority, number> = {
   Low: 3,
   None: 4,
 }
+
+export const EXPENSE_VALUE_KEY = ':user.property/cost-CAE_NF1n'

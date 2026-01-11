@@ -1,10 +1,17 @@
 import { format } from 'date-fns'
 import wretch from 'wretch'
 
-import { BASE_URL, TASK_PRIORITY_KEY, TASK_STATUS_KEY } from './constants'
+import {
+  BASE_URL,
+  EXPENSE_VALUE_KEY,
+  TASK_PRIORITY_KEY,
+  TASK_STATUS_KEY,
+} from './constants'
 import type {
+  AddExpenseMutationProps,
   AddTaskMutationProps,
   BaseLogseqBlock,
+  Expense,
   LogseqTask,
   Priority,
   TagExtension,
@@ -21,6 +28,68 @@ const api = wretch()
     console.error('Global API Error:', error.status, error.text)
     throw error
   })
+
+export const getExpensesFromLogseq = async (): Promise<Expense[]> => {
+  const allExpenses = await api
+    .post({
+      method: 'logseq.DB.datascriptQuery',
+      args: [
+        `[:find ?created-at ?title ?cost
+        :where
+          [?tag :block/name "expense"]
+          [?b :block/refs ?tag]
+          [?b :block/created-at ?created-at]
+          [?b :block/title ?title]
+          (or
+            (and
+              [?b :user.property/cost-CAE_NF1n ?prop-ref]
+              [?prop-ref :logseq.property/value ?cost]
+            )
+            (and
+              [(ground -1) ?prop-ref]
+              [(ground 0) ?cost]
+            )
+          )]]`,
+      ],
+    })
+    .json<[number, string, number][]>()
+
+  const mappedExpenses = allExpenses.map(([createdAt, label, value]) => ({
+    label: label,
+    value: value,
+    createdAt: createdAt,
+  }))
+  return mappedExpenses
+}
+
+export const addExpenseToLogseq = async ({
+  label,
+  value,
+}: AddExpenseMutationProps) => {
+  const todayDate = format(new Date(), 'MMM do, yyyy')
+  try {
+    const createdBlock = await api
+      .post({
+        method: 'logseq.Editor.appendBlockInPage',
+        args: [todayDate, label],
+      })
+      .json<BaseLogseqBlock>()
+    await api
+      .post({
+        method: 'logseq.Editor.addBlockTag',
+        args: [createdBlock.uuid, 'expense'],
+      })
+      .json<BaseLogseqBlock>()
+    await api
+      .post({
+        method: 'logseq.Editor.upsertBlockProperty',
+        args: [createdBlock.uuid, EXPENSE_VALUE_KEY, value],
+      })
+      .json<BaseLogseqBlock>()
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   const allTasks = await api
@@ -84,6 +153,7 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
 export const addTaskToLogseq = async ({
   task,
   priority,
+  type,
 }: AddTaskMutationProps) => {
   const todayDate = format(new Date(), 'MMM do, yyyy')
   try {
@@ -96,7 +166,7 @@ export const addTaskToLogseq = async ({
     await api
       .post({
         method: 'logseq.Editor.addBlockTag',
-        args: [createdBlock.uuid, 'task'],
+        args: [createdBlock.uuid, type],
       })
       .json<BaseLogseqBlock>()
     await api
