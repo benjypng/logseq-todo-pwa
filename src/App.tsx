@@ -77,6 +77,7 @@ export default function App() {
         variant="outline"
         radius="md"
         defaultValue="tasks"
+        h="3rem"
         style={{
           flex: 1,
           display: 'flex',
