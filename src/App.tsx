@@ -35,14 +35,16 @@ export default function App() {
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
-      if (e.key === 'a' && !selectedTask) {
+      if (e.key === 'a') {
         setOpened(true)
         e.preventDefault()
       }
     }
-    window.addEventListener('keydown', kbShortcut)
-    return () => window.removeEventListener('keydown', kbShortcut)
-  }, [selectedTask])
+    if (!opened) {
+      window.addEventListener('keydown', kbShortcut)
+      return () => window.removeEventListener('keydown', kbShortcut)
+    }
+  }, [opened])
 
   const handleSelectedTask = (task: LogseqTask) => {
     setSelectedTask(task)
