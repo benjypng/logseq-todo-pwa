@@ -37,7 +37,13 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
 
       addTaskMutation.mutate(
         {
-          task: data.task,
+          task: data.task
+            .replace('#errand', '')
+            .replace('p0', '')
+            .replace('p1', '')
+            .replace('p1', '')
+            .replace('p2', '')
+            .replace('p4', ''),
           priority: getPriorityFromTask(data.task),
           type: type,
         },

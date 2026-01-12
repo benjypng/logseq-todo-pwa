@@ -3,7 +3,10 @@ export const parseExpense = (input: string) => {
   if (!match) return
 
   const value = parseFloat(match[1])
-  const label = input.replace(/\$(\d+(?:\.\d{2})?)/, '').trim()
+  const label = input
+    .replace(/\$(\d+(?:\.\d{2})?)/, '')
+    .replace('#expense', '')
+    .trim()
   return {
     label: label,
     value: value,
