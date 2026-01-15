@@ -1,36 +1,47 @@
-import { ActionIcon, Badge, Stack, Text, Title } from '@mantine/core'
-import { format } from 'date-fns'
-import { useCallback, useEffect } from 'react'
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  rem,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import { IconLink } from "@tabler/icons-react";
+import { format } from "date-fns";
+import { useCallback, useEffect } from "react";
 
-import { useDoneTodo } from '../hooks/use-tasks'
-import type { SelectedTaskProps } from '../types'
+import { useDoneTodo, useGraph } from "../hooks";
+import type { SelectedTaskProps } from "../types";
 
 export const SelectedTask = ({
   selectedTask,
   setSelectedTask,
 }: SelectedTaskProps) => {
-  const toggleMutation = useDoneTodo()
+  const toggleMutation = useDoneTodo();
+
+  const { data: currGraphName } = useGraph();
 
   const handleComplete = useCallback(() => {
     if (selectedTask) {
-      toggleMutation.mutate(selectedTask.uuid)
-      setSelectedTask(null)
+      toggleMutation.mutate(selectedTask.uuid);
+      setSelectedTask(null);
     }
-  }, [selectedTask, setSelectedTask, toggleMutation])
+  }, [selectedTask, setSelectedTask, toggleMutation]);
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
-      if (e.key === 'd') {
-        handleComplete()
-        e.preventDefault()
+      if (e.key === "d") {
+        handleComplete();
+        e.preventDefault();
       }
-      if (e.key === 'Escape') {
-        setSelectedTask(null)
+      if (e.key === "Escape") {
+        setSelectedTask(null);
       }
-    }
-    window.addEventListener('keydown', kbShortcut)
-    return () => window.removeEventListener('keydown', kbShortcut)
-  }, [handleComplete, setSelectedTask])
+    };
+    window.addEventListener("keydown", kbShortcut);
+    return () => window.removeEventListener("keydown", kbShortcut);
+  }, [handleComplete, setSelectedTask]);
 
   return (
     <Stack
@@ -57,12 +68,25 @@ export const SelectedTask = ({
       </ActionIcon>
       <Stack align="start" gap="md">
         <Title order={1} size="h1" lh={1.2}>
-          {selectedTask['full-title']}
+          {selectedTask["full-title"]}
         </Title>
 
-        <Badge size="lg" variant="outline" color="gray" tt="uppercase">
-          {format(selectedTask['created-at'], 'MMM do, yyyy')}
-        </Badge>
+        <Group gap="xs">
+          <Badge size="lg" variant="outline" color="gray" tt="uppercase">
+            {format(selectedTask["created-at"], "MMM do, yyyy")}
+          </Badge>
+          <ActionIcon
+            component="a"
+            href={`logseq://graph/${currGraphName}?block-id=${selectedTask.uuid}`}
+            rel="noopener noreferrer"
+            size={25}
+            radius="lg"
+            color="gray"
+            variant="outline"
+          >
+            <IconLink style={{ width: rem(15), height: rem(15) }} />
+          </ActionIcon>
+        </Group>
       </Stack>
       <ActionIcon
         size={60}
@@ -76,5 +100,5 @@ export const SelectedTask = ({
         <Text size="xl">✓</Text>
       </ActionIcon>
     </Stack>
-  )
-}
+  );
+};
