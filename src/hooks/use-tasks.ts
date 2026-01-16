@@ -22,6 +22,7 @@ export const useTodos = () => {
         .sort(
           (a, b) => PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority],
         )
+        .filter((item) => item.status !== 'Waiting')
         .filter((item) => item['full-title'] !== '')
         .filter((item) => item['full-title'] !== 'All')
         .filter((item) => item['full-title'] !== 'Linked references')
