@@ -38,6 +38,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
       addTaskMutation.mutate(
         {
           task: data.task
+            .toLowerCase()
             .replace('#errand', '')
             .replace('p0', '')
             .replace('p1', '')
