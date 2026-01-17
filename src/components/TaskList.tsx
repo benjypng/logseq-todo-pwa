@@ -13,7 +13,12 @@ import type { TaskListProps } from '../types'
 export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
   const filteredTasks = tasks?.filter((t) => t.taskType === type)
 
-  const getPriorityColor = (priority: string) => {
+  console.log(filteredTasks)
+
+  const getPriorityColor = (priority: string, status: string) => {
+    if (status === 'Doing') {
+      return 'var(--mantine-color-teal-5)'
+    }
     switch (priority) {
       case 'Urgent':
         return 'red.6'
@@ -57,8 +62,11 @@ export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
               <Box
                 w={4}
                 h={40}
-                bg={getPriorityColor(task.priority)}
-                style={{ borderRadius: 4, flexShrink: 0 }}
+                bg={getPriorityColor(task.priority, task.status)}
+                style={{
+                  borderRadius: 4,
+                  flexShrink: 0,
+                }}
               />
               <Text
                 size="lg"
