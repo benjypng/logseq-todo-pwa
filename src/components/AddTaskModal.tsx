@@ -1,4 +1,5 @@
 import { Input, Modal } from '@mantine/core'
+import { IconMoneybag, IconShoppingBag } from '@tabler/icons-react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useAddTodo } from '../hooks'
@@ -10,6 +11,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: { task: '' },
   })
+
   const addTaskMutation = useAddTodo()
   const addExpenseMutation = useAddExpense()
 
@@ -73,14 +75,29 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
           name="task"
           control={control}
           rules={{ required: true }}
-          render={({ field }) => (
-            <Input
-              {...field}
-              placeholder="What needs to be done?"
-              variant="unstyled"
-              size="xl"
-            />
-          )}
+          render={({ field }) => {
+            const isExpense = field.value.includes('$')
+            const isErrand = field.value.toLowerCase().includes('#errand')
+
+            const renderLeftSection = () => {
+              if (isExpense) {
+                return <IconMoneybag />
+              } else if (isErrand) {
+                return <IconShoppingBag />
+              }
+              return null
+            }
+
+            return (
+              <Input
+                {...field}
+                placeholder="What needs to be done?"
+                variant="unstyled"
+                size="xl"
+                leftSection={renderLeftSection()}
+              />
+            )
+          }}
         />
       </form>
     </Modal>
