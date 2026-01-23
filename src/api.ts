@@ -4,6 +4,8 @@ import wretch from "wretch";
 import {
   BASE_URL,
   EXPENSE_VALUE_KEY,
+  GET_ERRANDS_FROM_LOGSEQ,
+  GET_TASKS_FROM_LOGSEQ,
   TASK_PRIORITY_KEY,
   TASK_STATUS_KEY,
 } from "./constants";
@@ -107,59 +109,31 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   const allTasks = await api
     .post({
       method: "logseq.DB.datascriptQuery",
-      args: [
-        `[:find (pull ?b [*]) ?status ?priority (pull ?actual-tag [:block/name :block/original-name])
-          :where
-            (or-join [?b ?actual-tag]
-              (and
-                [?actual-tag :block/name "task"]
-                [?b :block/refs ?actual-tag]
-              )
-              (and
-                [?parent :block/title "Task"]
-                [?actual-tag :logseq.property.class/extends ?parent]
-                [?b :block/tags ?actual-tag]
-              )
-            )
-            (or
-              (and
-                [?b :logseq.property/status ?s]
-                [?s :block/title ?status]
-              )
-              (and
-                (not [?b :logseq.property/status])
-                [(ground "Todo") ?status]
-                [(ground -1) ?s]  
-              )
-            )
-            [(!= ?status "Done")]
-            (or
-              (and
-                [?b :logseq.property/priority ?p]
-                [?p :block/title ?priority]
-              )
-              (and
-                (not [?b :logseq.property/priority])
-                [(ground "None") ?priority]
-                [(ground -1) ?p] 
-              )
-            )]`,
-      ],
+      args: [GET_TASKS_FROM_LOGSEQ],
     })
     .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>();
 
-  const mappedTasks = allTasks.map(
-    ([logseqTask, taskStatus, priority, tagExtension]) => {
+  const allErrands = await api
+    .post({
+      method: "logseq.DB.datascriptQuery",
+      args: [GET_ERRANDS_FROM_LOGSEQ],
+    })
+    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>();
+
+  const mappedTasksAndErrands = allTasks
+    .concat(allErrands)
+    .map(([logseqTask, taskStatus, priority, tagExtension]) => {
       return {
         ...logseqTask,
         status: taskStatus,
         priority: priority,
-        taskType: tagExtension.name,
+        taskType: tagExtension,
       };
-    },
-  );
+    });
 
-  return mappedTasks.flat();
+  console.log(mappedTasksAndErrands);
+
+  return mappedTasksAndErrands.flat();
 };
 
 export const addTaskToLogseq = async ({

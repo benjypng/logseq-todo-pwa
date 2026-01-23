@@ -6,14 +6,14 @@ import {
   Loader,
   rem,
   Tabs,
-} from '@mantine/core'
+} from "@mantine/core";
 import {
   IconChecklist,
   IconCurrencyDollar,
   IconPlus,
   IconShovel,
-} from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 import {
   AddTaskModal,
@@ -21,35 +21,35 @@ import {
   SelectedTask,
   TaskList,
   ToggleTheme,
-} from './components'
-import { useDoingTodo, useTodos } from './hooks'
-import type { LogseqTask } from './types'
+} from "./components";
+import { useDoingTodo, useTodos } from "./hooks";
+import type { LogseqTask } from "./types";
 
 export default function App() {
-  const [opened, setOpened] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
-  const [activeTab, setActiveTab] = useState<string | null>('tasks')
+  const [opened, setOpened] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>("tasks");
 
-  const { data: todos, isLoading } = useTodos()
-  const doingMutation = useDoingTodo()
+  const { data: todos, isLoading } = useTodos();
+  const doingMutation = useDoingTodo();
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
-      if (e.key === 'a') {
-        setOpened(true)
-        e.preventDefault()
+      if (e.key === "a") {
+        setOpened(true);
+        e.preventDefault();
       }
-    }
+    };
     if (!opened) {
-      window.addEventListener('keydown', kbShortcut)
-      return () => window.removeEventListener('keydown', kbShortcut)
+      window.addEventListener("keydown", kbShortcut);
+      return () => window.removeEventListener("keydown", kbShortcut);
     }
-  }, [opened])
+  }, [opened]);
 
   const handleSelectedTask = (task: LogseqTask) => {
-    setSelectedTask(task)
-    doingMutation.mutate(task.uuid)
-  }
+    setSelectedTask(task);
+    doingMutation.mutate(task.uuid);
+  };
 
   if (selectedTask) {
     return (
@@ -59,7 +59,7 @@ export default function App() {
           setSelectedTask={setSelectedTask}
         />
       </Container>
-    )
+    );
   }
 
   return (
@@ -67,7 +67,7 @@ export default function App() {
       size="xs"
       h="100dvh"
       p={0}
-      style={{ display: 'flex', flexDirection: 'column' }}
+      style={{ display: "flex", flexDirection: "column" }}
     >
       <Group p="md" justify="space-between">
         <ToggleTheme />
@@ -82,12 +82,12 @@ export default function App() {
         h="3rem"
         style={{
           flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
       >
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem' }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 1rem" }}>
           {isLoading ? (
             <Center h="100%">
               <Loader type="dots" />
@@ -105,7 +105,7 @@ export default function App() {
               <Tabs.Panel value="errands" h="100%">
                 <TaskList
                   tasks={todos}
-                  type="errand"
+                  type="Errand"
                   onSelect={handleSelectedTask}
                 />
               </Tabs.Panel>
@@ -124,7 +124,7 @@ export default function App() {
           pos="fixed"
           bottom={80}
           right={20}
-          style={{ zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+          style={{ zIndex: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
           onClick={() => setOpened(true)}
         >
           <IconPlus />
@@ -133,7 +133,7 @@ export default function App() {
         <Tabs.List
           grow
           justify="center"
-          style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
+          style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
         >
           <Tabs.Tab
             value="tasks"
@@ -167,5 +167,5 @@ export default function App() {
 
       <AddTaskModal opened={opened} setOpened={setOpened} />
     </Container>
-  )
+  );
 }

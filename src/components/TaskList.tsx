@@ -6,39 +6,37 @@ import {
   Stack,
   Text,
   UnstyledButton,
-} from '@mantine/core'
+} from "@mantine/core";
 
-import type { TaskListProps } from '../types'
+import type { TaskListProps } from "../types";
 
 export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
-  const filteredTasks = tasks?.filter((t) => t.taskType === type)
-
-  console.log(filteredTasks)
+  const filteredTasks = tasks?.filter((t) => t.taskType === type);
 
   const getPriorityColor = (priority: string, status: string) => {
-    if (status === 'Doing') {
-      return 'var(--mantine-color-teal-5)'
+    if (status === "Doing") {
+      return "var(--mantine-color-teal-5)";
     }
     switch (priority) {
-      case 'Urgent':
-        return 'red.6'
-      case 'High':
-        return 'orange.5'
-      case 'Medium':
-        return 'yellow.5'
-      case 'Low':
-        return 'blue.4'
+      case "Urgent":
+        return "red.6";
+      case "High":
+        return "orange.5";
+      case "Medium":
+        return "yellow.5";
+      case "Low":
+        return "blue.4";
       default:
-        return 'transparent'
+        return "transparent";
     }
-  }
+  };
 
   if (!filteredTasks || filteredTasks.length === 0) {
     return (
       <Center h="100%">
         <Text c="dimmed">No {type}s found.</Text>
       </Center>
-    )
+    );
   }
 
   return (
@@ -49,13 +47,13 @@ export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
             py="md"
             w="100%"
             onClick={() => onSelect(task)}
-            style={{ transition: 'background-color 0.2s' }}
+            style={{ transition: "background-color 0.2s" }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor =
-                'var(--mantine-color-default-hover)')
+                "var(--mantine-color-default-hover)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = 'transparent')
+              (e.currentTarget.style.backgroundColor = "transparent")
             }
           >
             <Group gap="md" align="center" wrap="nowrap" w="100%">
@@ -71,12 +69,12 @@ export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
               <Text
                 size="lg"
                 fw={500}
-                td={task.status === 'Done' ? 'line-through' : undefined}
-                c={task.status === 'Done' ? 'dimmed' : undefined}
-                opacity={task.status === 'Done' ? 0.5 : 1}
-                style={{ flex: 1, wordBreak: 'break-word', lineHeight: 1.3 }}
+                td={task.status === "Done" ? "line-through" : undefined}
+                c={task.status === "Done" ? "dimmed" : undefined}
+                opacity={task.status === "Done" ? 0.5 : 1}
+                style={{ flex: 1, wordBreak: "break-word", lineHeight: 1.3 }}
               >
-                {task['full-title']}
+                {task["full-title"]}
               </Text>
             </Group>
           </UnstyledButton>
@@ -84,5 +82,5 @@ export const TaskList = ({ tasks, type, onSelect }: TaskListProps) => {
         </Box>
       ))}
     </Stack>
-  )
-}
+  );
+};
