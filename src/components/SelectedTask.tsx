@@ -6,42 +6,42 @@ import {
   Stack,
   Text,
   Title,
-} from "@mantine/core";
-import { IconLink } from "@tabler/icons-react";
-import { format } from "date-fns";
-import { useCallback, useEffect } from "react";
+} from '@mantine/core'
+import { IconLink } from '@tabler/icons-react'
+import { format } from 'date-fns'
+import { useCallback, useEffect } from 'react'
 
-import { useDoneTodo, useGraph } from "../hooks";
-import type { SelectedTaskProps } from "../types";
+import { useDoneTodo, useGraph } from '../hooks'
+import type { SelectedTaskProps } from '../types'
 
 export const SelectedTask = ({
   selectedTask,
   setSelectedTask,
 }: SelectedTaskProps) => {
-  const toggleMutation = useDoneTodo();
+  const toggleMutation = useDoneTodo()
 
-  const { data: currGraphName } = useGraph();
+  const { data: currGraphName } = useGraph()
 
   const handleComplete = useCallback(() => {
     if (selectedTask) {
-      toggleMutation.mutate(selectedTask.uuid);
-      setSelectedTask(null);
+      toggleMutation.mutate(selectedTask.uuid)
+      setSelectedTask(null)
     }
-  }, [selectedTask, setSelectedTask, toggleMutation]);
+  }, [selectedTask, setSelectedTask, toggleMutation])
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
-      if (e.key === "d") {
-        handleComplete();
-        e.preventDefault();
+      if (e.key === 'd') {
+        handleComplete()
+        e.preventDefault()
       }
-      if (e.key === "Escape") {
-        setSelectedTask(null);
+      if (e.key === 'Escape') {
+        setSelectedTask(null)
       }
-    };
-    window.addEventListener("keydown", kbShortcut);
-    return () => window.removeEventListener("keydown", kbShortcut);
-  }, [handleComplete, setSelectedTask]);
+    }
+    window.addEventListener('keydown', kbShortcut)
+    return () => window.removeEventListener('keydown', kbShortcut)
+  }, [handleComplete, setSelectedTask])
 
   return (
     <Stack
@@ -68,12 +68,12 @@ export const SelectedTask = ({
       </ActionIcon>
       <Stack align="start" gap="md">
         <Title order={1} size="h1" lh={1.2}>
-          {selectedTask["full-title"]}
+          {selectedTask['full-title']}
         </Title>
 
         <Group gap="xs">
           <Badge size="lg" variant="outline" color="gray" tt="uppercase">
-            {format(selectedTask["created-at"], "MMM do, yyyy")}
+            {format(selectedTask['created-at'], 'MMM do, yyyy')}
           </Badge>
           <ActionIcon
             component="a"
@@ -100,5 +100,5 @@ export const SelectedTask = ({
         <Text size="xl">✓</Text>
       </ActionIcon>
     </Stack>
-  );
-};
+  )
+}

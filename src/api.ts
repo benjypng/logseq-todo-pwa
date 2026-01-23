@@ -1,5 +1,5 @@
-import { format } from "date-fns";
-import wretch from "wretch";
+import { format } from 'date-fns'
+import wretch from 'wretch'
 
 import {
   BASE_URL,
@@ -8,7 +8,7 @@ import {
   GET_TASKS_FROM_LOGSEQ,
   TASK_PRIORITY_KEY,
   TASK_STATUS_KEY,
-} from "./constants";
+} from './constants'
 import {
   type AddExpenseMutationProps,
   type AddTaskMutationProps,
@@ -19,34 +19,34 @@ import {
   type Priority,
   type TagExtension,
   type TaskStatus,
-} from "./types";
+} from './types'
 
 const api = wretch()
   .url(BASE_URL)
   .headers({
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_LOGSEQ_TOKEN}`,
   })
   .catcherFallback((error: any) => {
-    console.error("Global API Error:", error.status, error.text);
-    throw error;
-  });
+    console.error('Global API Error:', error.status, error.text)
+    throw error
+  })
 
 export const getCurrGraphName = async () => {
   const currGraph = await api
     .post({
-      method: "logseq.App.getCurrentGraph",
+      method: 'logseq.App.getCurrentGraph',
       args: [],
     })
-    .json<LogseqGraph>();
-  const graphName = currGraph.name.replace("logseq_db_", "");
-  return graphName;
-};
+    .json<LogseqGraph>()
+  const graphName = currGraph.name.replace('logseq_db_', '')
+  return graphName
+}
 
 export const getExpensesFromLogseq = async (): Promise<Expense[]> => {
   const allExpenses = await api
     .post({
-      method: "logseq.DB.datascriptQuery",
+      method: 'logseq.DB.datascriptQuery',
       args: [
         `[:find ?created-at ?title ?cost
         :where
@@ -66,59 +66,59 @@ export const getExpensesFromLogseq = async (): Promise<Expense[]> => {
           )]]`,
       ],
     })
-    .json<[number, string, number][]>();
+    .json<[number, string, number][]>()
 
   const mappedExpenses = allExpenses.map(([createdAt, label, value]) => ({
     label: label,
     value: value,
     createdAt: createdAt,
-  }));
-  return mappedExpenses;
-};
+  }))
+  return mappedExpenses
+}
 
 export const addExpenseToLogseq = async ({
   label,
   value,
 }: AddExpenseMutationProps) => {
-  const todayDate = format(new Date(), "MMM do, yyyy");
+  const todayDate = format(new Date(), 'MMM do, yyyy')
   try {
     const createdBlock = await api
       .post({
-        method: "logseq.Editor.appendBlockInPage",
+        method: 'logseq.Editor.appendBlockInPage',
         args: [todayDate, label],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
     await api
       .post({
-        method: "logseq.Editor.addBlockTag",
-        args: [createdBlock.uuid, "expense"],
+        method: 'logseq.Editor.addBlockTag',
+        args: [createdBlock.uuid, 'expense'],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
     await api
       .post({
-        method: "logseq.Editor.upsertBlockProperty",
+        method: 'logseq.Editor.upsertBlockProperty',
         args: [createdBlock.uuid, EXPENSE_VALUE_KEY, value],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
   } catch (e) {
-    console.error(e);
+    console.error(e)
   }
-};
+}
 
 export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   const allTasks = await api
     .post({
-      method: "logseq.DB.datascriptQuery",
+      method: 'logseq.DB.datascriptQuery',
       args: [GET_TASKS_FROM_LOGSEQ],
     })
-    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>();
+    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>()
 
   const allErrands = await api
     .post({
-      method: "logseq.DB.datascriptQuery",
+      method: 'logseq.DB.datascriptQuery',
       args: [GET_ERRANDS_FROM_LOGSEQ],
     })
-    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>();
+    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>()
 
   const mappedTasksAndErrands = allTasks
     .concat(allErrands)
@@ -128,58 +128,58 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
         status: taskStatus,
         priority: priority,
         taskType: tagExtension,
-      };
-    });
+      }
+    })
 
-  console.log(mappedTasksAndErrands);
+  console.log(mappedTasksAndErrands)
 
-  return mappedTasksAndErrands.flat();
-};
+  return mappedTasksAndErrands.flat()
+}
 
 export const addTaskToLogseq = async ({
   task,
   priority,
   type,
 }: AddTaskMutationProps) => {
-  const todayDate = format(new Date(), "MMM do, yyyy");
+  const todayDate = format(new Date(), 'MMM do, yyyy')
   try {
     const createdBlock = await api
       .post({
-        method: "logseq.Editor.appendBlockInPage",
+        method: 'logseq.Editor.appendBlockInPage',
         args: [todayDate, task],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
     await api
       .post({
-        method: "logseq.Editor.addBlockTag",
+        method: 'logseq.Editor.addBlockTag',
         args: [createdBlock.uuid, type],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
     await api
       .post({
-        method: "logseq.Editor.upsertBlockProperty",
+        method: 'logseq.Editor.upsertBlockProperty',
         args: [createdBlock.uuid, TASK_PRIORITY_KEY, priority],
       })
-      .json<BaseLogseqBlock>();
+      .json<BaseLogseqBlock>()
   } catch (e) {
-    console.error(e);
+    console.error(e)
   }
-};
+}
 
 export const markTaskAsDone = async (uuid: string) => {
   await api
     .post({
-      method: "logseq.Editor.upsertBlockProperty",
-      args: [uuid, TASK_STATUS_KEY, "Done"],
+      method: 'logseq.Editor.upsertBlockProperty',
+      args: [uuid, TASK_STATUS_KEY, 'Done'],
     })
-    .json<BaseLogseqBlock>();
-};
+    .json<BaseLogseqBlock>()
+}
 
 export const markTaskAsDoing = async (uuid: string) => {
   await api
     .post({
-      method: "logseq.Editor.upsertBlockProperty",
-      args: [uuid, TASK_STATUS_KEY, "Doing"],
+      method: 'logseq.Editor.upsertBlockProperty',
+      args: [uuid, TASK_STATUS_KEY, 'Doing'],
     })
-    .json<BaseLogseqBlock>();
-};
+    .json<BaseLogseqBlock>()
+}
