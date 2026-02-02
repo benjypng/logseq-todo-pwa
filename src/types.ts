@@ -16,6 +16,22 @@ export interface LogseqTask {
   status: TaskStatus
   priority: Priority
   taskType: TaskType
+  journalDate: Date | null
+  scheduledDate: Date | null
+  effectiveDate: Date | null
+}
+
+export interface DayColumn {
+  date: Date
+  dateKey: string
+  dayName: string
+  dayNumber: number
+  isToday: boolean
+  isPast: boolean
+}
+
+export interface TasksByDate {
+  [dateKey: string]: LogseqTask[]
 }
 
 export interface LogseqGraph {
@@ -58,6 +74,7 @@ export interface AddTaskMutationProps {
   task: string
   priority: Priority
   type: 'task' | 'errand'
+  date?: Date | null
 }
 
 export interface AddExpenseMutationProps {

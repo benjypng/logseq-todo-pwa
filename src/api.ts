@@ -7,6 +7,7 @@ import {
   GET_ERRANDS_FROM_LOGSEQ,
   GET_TASKS_FROM_LOGSEQ,
   TASK_PRIORITY_KEY,
+  TASK_SCHEDULED_KEY,
   TASK_STATUS_KEY,
 } from './constants'
 import {
@@ -17,9 +18,23 @@ import {
   type LogseqGraph,
   type LogseqTask,
   type Priority,
-  type TagExtension,
   type TaskStatus,
 } from './types'
+import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
+
+interface RawLogseqTask {
+  ['full-title']: string
+  uuid: string
+  ['created-at']: number
+  ['updated-at']: number
+  [':logseq.property/status']: number
+  [':logseq.property/priority']: number
+  [':logseq.property/scheduled']?: number
+  page?: {
+    name?: string
+    ['journal-day']?: number
+  }
+}
 
 const api = wretch()
   .url(BASE_URL)
@@ -111,23 +126,44 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
       method: 'logseq.DB.datascriptQuery',
       args: [GET_TASKS_FROM_LOGSEQ],
     })
-    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>()
+    .json<[RawLogseqTask, TaskStatus, Priority, string][]>()
 
   const allErrands = await api
     .post({
       method: 'logseq.DB.datascriptQuery',
       args: [GET_ERRANDS_FROM_LOGSEQ],
     })
-    .json<[LogseqTask, TaskStatus, Priority, TagExtension][]>()
+    .json<[RawLogseqTask, TaskStatus, Priority, string][]>()
 
   const mappedTasksAndErrands = allTasks
     .concat(allErrands)
-    .map(([logseqTask, taskStatus, priority, tagExtension]) => {
+    .map(([logseqTask, taskStatus, priority, tagName]) => {
+      const task = logseqTask as Record<string, unknown>
+
+      // Get journal date from page.journal-day (YYYYMMDD format)
+      const page = task.page as { 'journal-day'?: number } | undefined
+      const journalDay = page?.['journal-day'] ?? null
+      const journalDate = parseJournalDay(journalDay)
+
+      // Get scheduled date from :logseq.property/scheduled (timestamp in ms)
+      const scheduledTimestamp = task[':logseq.property/scheduled'] as
+        | number
+        | undefined
+      const scheduledDate = scheduledTimestamp
+        ? new Date(scheduledTimestamp)
+        : null
+
+      // Effective date: use scheduled if exists, otherwise journal date
+      const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
+
       return {
         ...logseqTask,
         status: taskStatus,
         priority: priority,
-        taskType: tagExtension,
+        taskType: tagName as 'task' | 'Errand',
+        journalDate,
+        scheduledDate,
+        effectiveDate,
       }
     })
 
@@ -138,13 +174,16 @@ export const addTaskToLogseq = async ({
   task,
   priority,
   type,
+  date,
 }: AddTaskMutationProps) => {
-  const todayDate = format(new Date(), 'MMM do, yyyy')
+  const targetPageDate = date
+    ? format(date, 'MMM do, yyyy')
+    : format(new Date(), 'MMM do, yyyy')
   try {
     const createdBlock = await api
       .post({
         method: 'logseq.Editor.appendBlockInPage',
-        args: [todayDate, task],
+        args: [targetPageDate, task],
       })
       .json<BaseLogseqBlock>()
     await api
@@ -180,4 +219,28 @@ export const markTaskAsDoing = async (uuid: string) => {
       args: [uuid, TASK_STATUS_KEY, 'Doing'],
     })
     .json<BaseLogseqBlock>()
+}
+
+export interface MoveTaskProps {
+  uuid: string
+  date: Date | null
+}
+
+export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
+  if (date === null) {
+    await api
+      .post({
+        method: 'logseq.Editor.removeBlockProperty',
+        args: [uuid, TASK_SCHEDULED_KEY],
+      })
+      .json()
+  } else {
+    const dateValue = format(date, 'yyyy-MM-dd')
+    await api
+      .post({
+        method: 'logseq.Editor.upsertBlockProperty',
+        args: [uuid, TASK_SCHEDULED_KEY, `[[${dateValue}]]`],
+      })
+      .json<BaseLogseqBlock>()
+  }
 }
