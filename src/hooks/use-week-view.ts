@@ -1,10 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
-import type { DayColumn, LogseqTask, TasksByDate } from '../types'
+import type { LogseqTask, TasksByDate } from '../types'
 import {
   formatWeekLabel,
   generateWeekColumns,
-  getDatelessTasks,
   groupTasksByDate,
 } from '../utils/date-utils'
 
@@ -14,8 +13,20 @@ export const useWeekView = (tasks: LogseqTask[] | undefined) => {
   const columns = generateWeekColumns(weekOffset)
   const weekLabel = formatWeekLabel(columns)
 
-  const tasksByDate: TasksByDate = tasks ? groupTasksByDate(tasks) : {}
-  const somedayTasks: LogseqTask[] = tasks ? getDatelessTasks(tasks) : []
+  // Separate tasks from errands
+  const { tasksOnly, errands } = useMemo(() => {
+    if (!tasks) return { tasksOnly: [], errands: [] }
+    return {
+      tasksOnly: tasks.filter((t) => t.taskType === 'task'),
+      errands: tasks.filter((t) => t.taskType === 'Errand'),
+    }
+  }, [tasks])
+
+  // Group only tasks (not errands) by date
+  const tasksByDate: TasksByDate = useMemo(
+    () => groupTasksByDate(tasksOnly),
+    [tasksOnly],
+  )
 
   const goToPreviousWeek = useCallback(() => {
     setWeekOffset((prev) => prev - 1)
@@ -41,7 +52,7 @@ export const useWeekView = (tasks: LogseqTask[] | undefined) => {
     weekLabel,
     weekOffset,
     tasksByDate,
-    somedayTasks,
+    errands,
     goToPreviousWeek,
     goToNextWeek,
     goToToday,

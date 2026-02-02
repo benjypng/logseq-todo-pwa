@@ -89,13 +89,6 @@ export const groupTasksByDate = (tasks: LogseqTask[]): TasksByDate => {
 }
 
 /**
- * Get tasks that have no date (for Someday list)
- */
-export const getDatelessTasks = (tasks: LogseqTask[]): LogseqTask[] => {
-  return tasks.filter((task) => task.effectiveDate === null)
-}
-
-/**
  * Format date for display in week navigation
  */
 export const formatWeekLabel = (weekColumns: DayColumn[]): string => {

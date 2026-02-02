@@ -8,13 +8,14 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Box, Center, Loader, Stack } from '@mantine/core'
+import { Box, Center, Loader, SegmentedControl, Stack } from '@mantine/core'
 import { useState } from 'react'
 
 import { useDoingTodo, useMoveTask, useTodos, useWeekView } from '../hooks'
 import type { LogseqTask } from '../types'
 import { DayColumn } from './DayColumn'
-import { SomedayList } from './SomedayList'
+import { ErrandsList } from './ErrandsList'
+import { ExpenseList } from './ExpenseList'
 import { TaskCard } from './TaskCard'
 import { WeekNavigation } from './WeekNavigation'
 
@@ -26,12 +27,13 @@ export const WeekView = ({ onSelectTask }: WeekViewProps) => {
   const { data: todos, isLoading } = useTodos()
   const moveTaskMutation = useMoveTask()
   const doingMutation = useDoingTodo()
+  const [bottomSection, setBottomSection] = useState<string>('errands')
 
   const {
     columns,
     weekLabel,
     weekOffset,
-    somedayTasks,
+    errands,
     goToPreviousWeek,
     goToNextWeek,
     goToToday,
@@ -132,7 +134,28 @@ export const WeekView = ({ onSelectTask }: WeekViewProps) => {
           ))}
         </Box>
 
-        <SomedayList tasks={somedayTasks} onSelectTask={handleSelectTask} />
+        <Box
+          style={{
+            borderTop: '2px solid var(--mantine-color-default-border)',
+          }}
+        >
+          <Box p="md" pb={8}>
+            <SegmentedControl
+              value={bottomSection}
+              onChange={setBottomSection}
+              size="xs"
+              data={[
+                { label: 'Errands', value: 'errands' },
+                { label: 'Expenses', value: 'expenses' },
+              ]}
+            />
+          </Box>
+          {bottomSection === 'errands' ? (
+            <ErrandsList tasks={errands} onSelectTask={handleSelectTask} />
+          ) : (
+            <ExpenseList />
+          )}
+        </Box>
       </Stack>
 
       <DragOverlay>
