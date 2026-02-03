@@ -1,4 +1,5 @@
 import { ActionIcon, Container, Group } from '@mantine/core'
+import { useMediaQuery } from '@mantine/hooks'
 import { IconPlus } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 
@@ -8,6 +9,7 @@ import type { LogseqTask } from './types'
 export default function App() {
   const [opened, setOpened] = useState(false)
   const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
@@ -43,7 +45,10 @@ export default function App() {
       </Group>
 
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        <WeekView onSelectTask={setSelectedTask} />
+        <WeekView
+          onSelectTask={setSelectedTask}
+          daysToShow={isMobile ? 1 : 7}
+        />
       </div>
 
       <ActionIcon

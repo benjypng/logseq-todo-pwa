@@ -8,7 +8,16 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Box, Center, Loader, SegmentedControl, Stack } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Center,
+  Drawer,
+  Loader,
+  SegmentedControl,
+  Stack,
+} from '@mantine/core'
+import { IconChevronUp } from '@tabler/icons-react'
 import { useState } from 'react'
 
 import { useDoingTodo, useMoveTask, useTodos, useWeekView } from '../hooks'
@@ -21,13 +30,15 @@ import { WeekNavigation } from './WeekNavigation'
 
 interface WeekViewProps {
   onSelectTask: (task: LogseqTask) => void
+  daysToShow?: number
 }
 
-export const WeekView = ({ onSelectTask }: WeekViewProps) => {
+export const WeekView = ({ onSelectTask, daysToShow = 7 }: WeekViewProps) => {
   const { data: todos, isLoading } = useTodos()
   const moveTaskMutation = useMoveTask()
   const doingMutation = useDoingTodo()
   const [bottomSection, setBottomSection] = useState<string>('errands')
+  const [drawerOpened, setDrawerOpened] = useState(false)
 
   const {
     columns,
@@ -38,7 +49,7 @@ export const WeekView = ({ onSelectTask }: WeekViewProps) => {
     goToNextWeek,
     goToToday,
     getTasksForDate,
-  } = useWeekView(todos)
+  } = useWeekView(todos, daysToShow)
 
   const [activeTask, setActiveTask] = useState<LogseqTask | null>(null)
 
@@ -122,6 +133,7 @@ export const WeekView = ({ onSelectTask }: WeekViewProps) => {
             borderLeft: '1px solid var(--mantine-color-default-border)',
             scrollSnapType: 'x mandatory',
             WebkitOverflowScrolling: 'touch',
+            position: 'relative',
           }}
         >
           {columns.map((column) => (
@@ -132,31 +144,73 @@ export const WeekView = ({ onSelectTask }: WeekViewProps) => {
               onSelectTask={handleSelectTask}
             />
           ))}
-        </Box>
 
-        <Box
-          style={{
-            borderTop: '2px solid var(--mantine-color-default-border)',
-          }}
-        >
-          <Box p="md" pb={8}>
+          <ActionIcon
+            size="xl"
+            radius="xl"
+            variant="filled"
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            }}
+            onClick={() => setDrawerOpened(true)}
+          >
+            <IconChevronUp size={24} />
+          </ActionIcon>
+        </Box>
+      </Stack>
+
+      <Drawer
+        opened={drawerOpened}
+        onClose={() => setDrawerOpened(false)}
+        position="bottom"
+        size="400px"
+        withCloseButton={false}
+        styles={{
+          body: { padding: 0, height: '100%' },
+          content: {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+          },
+        }}
+      >
+        <Stack gap={0} h="100%">
+          {/* Drag handle indicator */}
+          <Center py="sm">
+            <Box
+              w={40}
+              h={4}
+              style={{
+                backgroundColor: 'var(--mantine-color-default-border)',
+                borderRadius: 2,
+              }}
+            />
+          </Center>
+
+          <Box px="md" pb="sm">
             <SegmentedControl
               value={bottomSection}
               onChange={setBottomSection}
-              size="xs"
+              fullWidth
               data={[
                 { label: 'Errands', value: 'errands' },
                 { label: 'Expenses', value: 'expenses' },
               ]}
             />
           </Box>
-          {bottomSection === 'errands' ? (
-            <ErrandsList tasks={errands} onSelectTask={handleSelectTask} />
-          ) : (
-            <ExpenseList />
-          )}
-        </Box>
-      </Stack>
+
+          <Box style={{ flex: 1, overflow: 'hidden' }}>
+            {bottomSection === 'errands' ? (
+              <ErrandsList tasks={errands} onSelectTask={handleSelectTask} />
+            ) : (
+              <ExpenseList />
+            )}
+          </Box>
+        </Stack>
+      </Drawer>
 
       <DragOverlay>
         {activeTask ? (

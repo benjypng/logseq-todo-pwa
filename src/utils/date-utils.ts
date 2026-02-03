@@ -49,15 +49,35 @@ export const computeEffectiveDate = (
 }
 
 /**
- * Generate an array of 7 DayColumn objects starting from a given week offset
+ * Generate an array of DayColumn objects starting from a given week offset
  */
-export const generateWeekColumns = (weekOffset: number): DayColumn[] => {
+export const generateWeekColumns = (
+  weekOffset: number,
+  daysToShow = 7,
+): DayColumn[] => {
   const today = startOfDay(new Date())
+
+  // For single day view, just show today + offset
+  if (daysToShow === 1) {
+    const date = addDays(today, weekOffset)
+    return [
+      {
+        date,
+        dateKey: formatDateKey(date),
+        dayName: format(date, 'EEE').toUpperCase(),
+        dayNumber: date.getDate(),
+        isToday: isSameDay(date, today),
+        isPast: isBefore(date, today),
+      },
+    ]
+  }
+
+  // For multi-day view, use week-based calculation
   const weekStart = startOfWeek(addDays(today, weekOffset * 7), {
     weekStartsOn: 1,
   })
 
-  return Array.from({ length: 7 }, (_, i) => {
+  return Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(weekStart, i)
     return {
       date,

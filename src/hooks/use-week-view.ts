@@ -7,10 +7,13 @@ import {
   groupTasksByDate,
 } from '../utils/date-utils'
 
-export const useWeekView = (tasks: LogseqTask[] | undefined) => {
+export const useWeekView = (
+  tasks: LogseqTask[] | undefined,
+  daysToShow = 7,
+) => {
   const [weekOffset, setWeekOffset] = useState(0)
 
-  const columns = generateWeekColumns(weekOffset)
+  const columns = generateWeekColumns(weekOffset, daysToShow)
   const weekLabel = formatWeekLabel(columns)
 
   // Separate tasks from errands

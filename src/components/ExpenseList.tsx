@@ -25,14 +25,14 @@ export const ExpenseList = () => {
 
   if (isLoading) {
     return (
-      <Center h={140}>
+      <Center h="100%">
         <Loader type="dots" />
       </Center>
     )
   }
 
   return (
-    <ScrollArea h={140} p="md" pt={0}>
+    <ScrollArea h="100%" p="md" pt={0}>
       <Group mb="sm" align="center">
         <Text size="sm" c="dimmed">
           {format(new Date(), 'MMMM')} total:
@@ -48,15 +48,15 @@ export const ExpenseList = () => {
         </Text>
       )}
 
-      <Group gap={12} wrap="wrap">
+      <Box style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {expenses?.map((expense, index) => (
           <Box
             key={index}
-            p={8}
+            p={12}
             style={{
-              borderRadius: 6,
+              borderRadius: 8,
               border: '1px solid var(--mantine-color-default-border)',
-              minWidth: 150,
+              backgroundColor: 'var(--mantine-color-body)',
             }}
           >
             <Group justify="space-between" gap="xs">
@@ -72,7 +72,7 @@ export const ExpenseList = () => {
             </Text>
           </Box>
         ))}
-      </Group>
+      </Box>
     </ScrollArea>
   )
 }

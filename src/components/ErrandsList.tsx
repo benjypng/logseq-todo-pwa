@@ -1,8 +1,5 @@
-import {
-  horizontalListSortingStrategy,
-  SortableContext,
-} from '@dnd-kit/sortable'
-import { Box, Group, ScrollArea, Text } from '@mantine/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { Box, ScrollArea, Text } from '@mantine/core'
 
 import type { LogseqTask } from '../types'
 import { TaskCard } from './TaskCard'
@@ -14,14 +11,14 @@ interface ErrandsListProps {
 
 export const ErrandsList = ({ tasks, onSelectTask }: ErrandsListProps) => {
   return (
-    <ScrollArea h={140} p="md" pt={0}>
+    <ScrollArea h="100%" p="md" pt={0}>
       <SortableContext
         items={tasks.map((t) => t.uuid)}
-        strategy={horizontalListSortingStrategy}
+        strategy={verticalListSortingStrategy}
       >
-        <Group gap={12} wrap="wrap">
+        <Box style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {tasks.map((task) => (
-            <Box key={task.uuid} w={200}>
+            <Box key={task.uuid}>
               <TaskCard task={task} onSelect={onSelectTask} />
             </Box>
           ))}
@@ -30,7 +27,7 @@ export const ErrandsList = ({ tasks, onSelectTask }: ErrandsListProps) => {
               No errands
             </Text>
           )}
-        </Group>
+        </Box>
       </SortableContext>
     </ScrollArea>
   )
