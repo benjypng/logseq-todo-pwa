@@ -4,7 +4,6 @@ import {
   isBefore,
   isSameDay,
   startOfDay,
-  startOfWeek,
 } from 'date-fns'
 
 import type { DayColumn, LogseqTask, TasksByDate } from '../types'
@@ -72,10 +71,7 @@ export const generateWeekColumns = (
     ]
   }
 
-  // For multi-day view, use week-based calculation
-  const weekStart = startOfWeek(addDays(today, weekOffset * 7), {
-    weekStartsOn: 1,
-  })
+  const weekStart = addDays(today, weekOffset * 7)
 
   return Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(weekStart, i)

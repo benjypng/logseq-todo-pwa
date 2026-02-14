@@ -21,17 +21,12 @@ import { IconChevronUp } from '@tabler/icons-react'
 import { useState } from 'react'
 
 import { useDoingTodo, useScheduledTodo, useTodos, useWeekView } from '../hooks'
-import type { LogseqTask } from '../types'
+import type { LogseqTask, WeekViewProps } from '../types'
 import { DayColumn } from './DayColumn'
 import { ErrandsList } from './ErrandsList'
 import { ExpenseList } from './ExpenseList'
 import { TaskCard } from './TaskCard'
 import { WeekNavigation } from './WeekNavigation'
-
-interface WeekViewProps {
-  onSelectTask: (task: LogseqTask) => void
-  daysToShow?: number
-}
 
 export const WeekView = ({ onSelectTask, daysToShow = 7 }: WeekViewProps) => {
   const { data: todos, isLoading } = useTodos()
@@ -176,7 +171,6 @@ export const WeekView = ({ onSelectTask, daysToShow = 7 }: WeekViewProps) => {
         }}
       >
         <Stack gap={0} h="100%">
-          {/* Drag handle indicator */}
           <Center py="sm">
             <Box
               w={40}

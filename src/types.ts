@@ -106,3 +106,8 @@ export interface ScheduleTaskMutationProps {
   uuid: string
   date: Date
 }
+
+export interface WeekViewProps {
+  onSelectTask: (task: LogseqTask) => void
+  daysToShow?: number
+}

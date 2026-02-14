@@ -204,11 +204,6 @@ export const markTaskAsDoing = async (uuid: string) => {
     .json<BaseLogseqBlock>()
 }
 
-export interface MoveTaskProps {
-  uuid: string
-  date: Date | null
-}
-
 export const setTaskScheduledDate = async ({
   uuid,
   date,
@@ -216,7 +211,7 @@ export const setTaskScheduledDate = async ({
   await api
     .post({
       method: 'logseq.Editor.upsertBlockProperty',
-      args: [uuid, TASK_SCHEDULED_KEY, date.getMilliseconds()],
+      args: [uuid, TASK_SCHEDULED_KEY, date.getTime()],
     })
     .json<BaseLogseqBlock>()
 }
