@@ -1,10 +1,4 @@
-import {
-  addDays,
-  format,
-  isBefore,
-  isSameDay,
-  startOfDay,
-} from 'date-fns'
+import { addDays, format, isBefore, isSameDay, startOfDay } from 'date-fns'
 
 import type { DayColumn, LogseqTask, TasksByDate } from '../types'
 
