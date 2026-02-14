@@ -20,7 +20,7 @@ import {
 import { IconChevronUp } from '@tabler/icons-react'
 import { useState } from 'react'
 
-import { useDoingTodo, useMoveTask, useTodos, useWeekView } from '../hooks'
+import { useDoingTodo, useScheduledTodo, useTodos, useWeekView } from '../hooks'
 import type { LogseqTask } from '../types'
 import { DayColumn } from './DayColumn'
 import { ErrandsList } from './ErrandsList'
@@ -35,7 +35,7 @@ interface WeekViewProps {
 
 export const WeekView = ({ onSelectTask, daysToShow = 7 }: WeekViewProps) => {
   const { data: todos, isLoading } = useTodos()
-  const moveTaskMutation = useMoveTask()
+  const scheduledMutation = useScheduledTodo()
   const doingMutation = useDoingTodo()
   const [bottomSection, setBottomSection] = useState<string>('errands')
   const [drawerOpened, setDrawerOpened] = useState(false)
@@ -85,13 +85,11 @@ export const WeekView = ({ onSelectTask, daysToShow = 7 }: WeekViewProps) => {
       | { type: string; date: Date | null }
       | undefined
 
-    if (!dropData) return
+    if (!dropData || !dropData.date) return
 
-    const newDate = dropData.date
-
-    moveTaskMutation.mutate({
+    scheduledMutation.mutate({
       uuid: taskId,
-      date: newDate,
+      date: dropData.date,
     })
   }
 

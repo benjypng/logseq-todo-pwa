@@ -5,7 +5,7 @@ import {
   getTasksFromLogseq,
   markTaskAsDoing,
   markTaskAsDone,
-  moveTaskToDate,
+  setTaskScheduledDate,
 } from '../api'
 import { PRIORITY_WEIGHT } from '../constants'
 
@@ -62,10 +62,10 @@ export const useDoingTodo = () => {
   })
 }
 
-export const useMoveTask = () => {
+export const useScheduledTodo = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: moveTaskToDate,
+    mutationFn: setTaskScheduledDate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
     },

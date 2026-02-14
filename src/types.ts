@@ -87,3 +87,22 @@ export interface TaskListProps {
   type: 'task' | 'Errand'
   onSelect: (task: LogseqTask) => void
 }
+
+export interface RawLogseqTask {
+  ['full-title']: string
+  uuid: string
+  ['created-at']: number
+  ['updated-at']: number
+  [':logseq.property/status']: number
+  [':logseq.property/priority']: number
+  [':logseq.property/scheduled']?: number
+  page?: {
+    name?: string
+    ['journal-day']?: number
+  }
+}
+
+export interface ScheduleTaskMutationProps {
+  uuid: string
+  date: Date
+}

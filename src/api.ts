@@ -18,23 +18,11 @@ import {
   type LogseqGraph,
   type LogseqTask,
   type Priority,
+  type RawLogseqTask,
+  type ScheduleTaskMutationProps,
   type TaskStatus,
 } from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
-
-interface RawLogseqTask {
-  ['full-title']: string
-  uuid: string
-  ['created-at']: number
-  ['updated-at']: number
-  [':logseq.property/status']: number
-  [':logseq.property/priority']: number
-  [':logseq.property/scheduled']?: number
-  page?: {
-    name?: string
-    ['journal-day']?: number
-  }
-}
 
 const api = wretch()
   .url(BASE_URL)
@@ -140,20 +128,15 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
     .map(([logseqTask, taskStatus, priority, tagName]) => {
       const task = logseqTask as Record<string, unknown>
 
-      // Get journal date from page.journal-day (YYYYMMDD format)
       const page = task.page as { 'journal-day'?: number } | undefined
       const journalDay = page?.['journal-day'] ?? null
       const journalDate = parseJournalDay(journalDay)
 
-      // Get scheduled date from :logseq.property/scheduled (timestamp in ms)
-      const scheduledTimestamp = task[':logseq.property/scheduled'] as
-        | number
-        | undefined
+      const scheduledTimestamp = task[TASK_SCHEDULED_KEY] as number | undefined
       const scheduledDate = scheduledTimestamp
         ? new Date(scheduledTimestamp)
         : null
 
-      // Effective date: use scheduled if exists, otherwise journal date
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
 
       return {
@@ -226,21 +209,14 @@ export interface MoveTaskProps {
   date: Date | null
 }
 
-export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
-  if (date === null) {
-    await api
-      .post({
-        method: 'logseq.Editor.removeBlockProperty',
-        args: [uuid, TASK_SCHEDULED_KEY],
-      })
-      .json()
-  } else {
-    const dateValue = format(date, 'yyyy-MM-dd')
-    await api
-      .post({
-        method: 'logseq.Editor.upsertBlockProperty',
-        args: [uuid, TASK_SCHEDULED_KEY, `[[${dateValue}]]`],
-      })
-      .json<BaseLogseqBlock>()
-  }
+export const setTaskScheduledDate = async ({
+  uuid,
+  date,
+}: ScheduleTaskMutationProps) => {
+  await api
+    .post({
+      method: 'logseq.Editor.upsertBlockProperty',
+      args: [uuid, TASK_SCHEDULED_KEY, date.getMilliseconds()],
+    })
+    .json<BaseLogseqBlock>()
 }

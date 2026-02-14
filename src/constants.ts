@@ -87,3 +87,4 @@ export const GET_ERRANDS_FROM_LOGSEQ = `
    )
 ]
 `
+
