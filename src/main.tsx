@@ -8,6 +8,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from './App.tsx'
+import { AuthGate } from './components/AuthGate'
 
 const queryClient = new QueryClient()
 
@@ -35,7 +36,9 @@ createRoot(document.getElementById('root')!).render(
         }}
         defaultColorScheme="auto"
       >
-        <App />
+        <AuthGate>
+          <App />
+        </AuthGate>
       </MantineProvider>
     </QueryClientProvider>
   </StrictMode>,

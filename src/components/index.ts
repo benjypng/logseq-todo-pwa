@@ -1,4 +1,5 @@
 export * from './AddTaskModal'
+export * from './AuthGate'
 export * from './DayColumn'
 export * from './ErrandsList'
 export * from './ExpenseList'
