@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Input, Modal, Stack, Text } from '@mantine/core'
+import { ActionIcon, Button, Group, Input, Modal, Stack } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import {
   IconCalendar,
@@ -18,7 +18,8 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: { task: '' },
   })
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [isTask, setIsTask] = useState<boolean>(true)
 
   const addTaskMutation = useAddTodo()
   const addExpenseMutation = useAddExpense()
@@ -46,7 +47,8 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
         },
       )
     } else {
-      const type = data.task.includes('#errand') ? 'errand' : 'task'
+      const type = isTask ? 'task' : 'errand'
+      const date = selectedDate ? new Date(selectedDate) : new Date()
 
       addTaskMutation.mutate(
         {
@@ -60,7 +62,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
             .replace('p4', ''),
           priority: getPriorityFromTask(data.task),
           type: type,
-          date: selectedDate,
+          date: date,
         },
         {
           onSuccess: handleClose,
@@ -112,6 +114,11 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
           />
 
           <Group gap="xs" align="center">
+            <Button
+              onClick={() => (isTask ? setIsTask(false) : setIsTask(true))}
+            >
+              {isTask ? 'Task' : 'Errand'}
+            </Button>
             <DatePickerInput
               value={selectedDate}
               onChange={setSelectedDate}
@@ -135,9 +142,6 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
                 <IconX size={14} />
               </ActionIcon>
             )}
-            <Text size="xs" c="dimmed" ml="auto">
-              Press Enter to add
-            </Text>
           </Group>
         </Stack>
       </form>
