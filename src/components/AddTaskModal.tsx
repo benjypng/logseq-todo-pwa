@@ -14,11 +14,15 @@ import { useAddExpense } from '../hooks/use-expense'
 import type { AddTaskModalProps, FormValues } from '../types'
 import { getPriorityFromTask, parseExpense } from '../utils'
 
-export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
+export const AddTaskModal = ({
+  opened,
+  setOpened,
+  activeTab,
+}: AddTaskModalProps) => {
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: { task: '' },
   })
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const addTaskMutation = useAddTodo()
   const addExpenseMutation = useAddExpense()
@@ -26,7 +30,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
   const handleClose = () => {
     setOpened(false)
     reset()
-    setSelectedDate(null)
+    setSelectedDate('')
   }
 
   const onSubmit = (data: FormValues) => {
@@ -46,7 +50,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
         },
       )
     } else {
-      const type = data.task.includes('#errand') ? 'errand' : 'task'
+      const type = activeTab
 
       addTaskMutation.mutate(
         {
@@ -60,7 +64,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
             .replace('p4', ''),
           priority: getPriorityFromTask(data.task),
           type: type,
-          date: selectedDate,
+          date: selectedDate ? new Date(selectedDate) : new Date(),
         },
         {
           onSuccess: handleClose,
@@ -129,7 +133,7 @@ export const AddTaskModal = ({ opened, setOpened }: AddTaskModalProps) => {
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                onClick={() => setSelectedDate(null)}
+                onClick={() => setSelectedDate('')}
                 aria-label="Clear date"
               >
                 <IconX size={14} />

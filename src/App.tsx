@@ -1,15 +1,23 @@
-import { ActionIcon, Container, Group } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
-import { IconPlus } from '@tabler/icons-react'
+import { Container, Group, Text } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
-import { AddTaskModal, SelectedTask, ToggleTheme, WeekView } from './components'
-import type { LogseqTask } from './types'
+import { AddTaskModal, SelectedTask, ToggleTheme } from './components'
+import { BottomNav } from './components/BottomNav'
+import { ItemList } from './components/ItemList'
+import { useDoneTodo, useTodos } from './hooks'
+import type { LogseqTask, TaskType } from './types'
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<TaskType>('task')
   const [opened, setOpened] = useState(false)
   const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
-  const isMobile = useMediaQuery('(max-width: 768px)')
+
+  const { data: allTasks, isLoading } = useTodos()
+  const doneMutation = useDoneTodo()
+
+  const tasks = allTasks?.filter((t) => t.taskType === 'task') ?? []
+  const errands = allTasks?.filter((t) => t.taskType === 'errand') ?? []
+  const activeItems = activeTab === 'task' ? tasks : errands
 
   useEffect(() => {
     const kbShortcut = (e: KeyboardEvent) => {
@@ -24,47 +32,58 @@ export default function App() {
 
   if (selectedTask) {
     return (
-      <Container size="xl" h="100dvh" py="xl">
-        <SelectedTask
-          selectedTask={selectedTask}
-          setSelectedTask={setSelectedTask}
-        />
-      </Container>
+      <SelectedTask
+        selectedTask={selectedTask}
+        setSelectedTask={setSelectedTask}
+      />
     )
   }
 
   return (
     <Container
-      size="xl"
-      h="100dvh"
       p={0}
+      h="100dvh"
       style={{ display: 'flex', flexDirection: 'column' }}
     >
-      <Group p="md" justify="space-between">
+      <Group
+        px="md"
+        py="sm"
+        justify="space-between"
+        style={{
+          flexShrink: 0,
+          borderBottom: '1px solid var(--mantine-color-default-border)',
+        }}
+      >
+        <Text fw={600} size="lg">
+          {activeTab === 'task' ? 'Tasks' : 'Errands'}
+        </Text>
         <ToggleTheme />
       </Group>
 
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <WeekView
-          onSelectTask={setSelectedTask}
-          daysToShow={isMobile ? 1 : 7}
+      <div
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 64 }}
+      >
+        <ItemList
+          items={activeItems}
+          isLoading={isLoading}
+          onSelect={(task) => {
+            setSelectedTask(task)
+          }}
+          onComplete={(uuid) => doneMutation.mutate(uuid)}
         />
       </div>
 
-      <ActionIcon
-        size={60}
-        radius="xl"
-        variant="filled"
-        pos="fixed"
-        bottom={20}
-        right={20}
-        style={{ zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-        onClick={() => setOpened(true)}
-      >
-        <IconPlus />
-      </ActionIcon>
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAdd={() => setOpened(true)}
+      />
 
-      <AddTaskModal opened={opened} setOpened={setOpened} />
+      <AddTaskModal
+        opened={opened}
+        setOpened={setOpened}
+        activeTab={activeTab}
+      />
     </Container>
   )
 }

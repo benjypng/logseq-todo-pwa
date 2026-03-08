@@ -54,7 +54,7 @@ export interface TagExtension {
   name: TaskType
 }
 
-export type TaskType = 'task' | 'Errand'
+export type TaskType = 'task' | 'errand'
 
 export interface FormValues {
   task: string
@@ -68,6 +68,7 @@ export interface SelectedTaskProps {
 export interface AddTaskModalProps {
   opened: boolean
   setOpened: Dispatch<SetStateAction<boolean>>
+  activeTab: TaskType
 }
 
 export interface AddTaskMutationProps {
@@ -84,7 +85,7 @@ export interface AddExpenseMutationProps {
 
 export interface TaskListProps {
   tasks: LogseqTask[] | undefined
-  type: 'task' | 'Errand'
+  type: 'task' | 'errand'
   onSelect: (task: LogseqTask) => void
 }
 
