@@ -1,5 +1,3 @@
-import type { Dispatch, SetStateAction } from 'react'
-
 export interface BaseLogseqBlock {
   fullTitle: string
   uuid: string
@@ -21,71 +19,32 @@ export interface LogseqTask {
   effectiveDate: Date | null
 }
 
-export interface DayColumn {
-  date: Date
-  dateKey: string
-  dayName: string
-  dayNumber: number
-  isToday: boolean
-  isPast: boolean
-}
-
-export interface TasksByDate {
-  [dateKey: string]: LogseqTask[]
-}
-
 export interface LogseqGraph {
   name: string
   path: string
   url: string
 }
 
-export interface Expense {
-  label: string
-  value: number
-  createdAt: number
-}
-
 export type TaskStatus = 'Todo' | 'Done' | 'Doing' | 'Waiting'
 
 export type Priority = 'Urgent' | 'High' | 'Medium' | 'Low' | 'None'
 
-export interface TagExtension {
-  name: TaskType
-}
-
 export type TaskType = 'task' | 'Errand'
 
-export interface FormValues {
-  task: string
+// The UI-facing task model used throughout components
+export interface Task {
+  uuid: string
+  displayText: string
+  status: 'Todo' | 'Doing'
+  scheduledDate: Date | null
+  isScheduledToday: boolean
+  pageName: string
+  taskType: TaskType
 }
 
-export interface SelectedTaskProps {
-  selectedTask: LogseqTask
-  setSelectedTask: Dispatch<SetStateAction<LogseqTask | null>>
-}
-
-export interface AddTaskModalProps {
-  opened: boolean
-  setOpened: Dispatch<SetStateAction<boolean>>
-}
-
-export interface AddTaskMutationProps {
-  task: string
-  priority: Priority
-  type: 'task' | 'errand'
-  date?: Date | null
-}
-
-export interface AddExpenseMutationProps {
-  label: string
-  value: number
-}
-
-export interface TaskListProps {
-  tasks: LogseqTask[] | undefined
-  type: 'task' | 'Errand'
-  onSelect: (task: LogseqTask) => void
+export interface MoveTaskProps {
+  uuid: string
+  date: Date | null
 }
 
 export interface RawLogseqTask {

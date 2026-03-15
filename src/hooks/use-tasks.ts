@@ -1,73 +1,71 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import {
-  addTaskToLogseq,
-  getTasksFromLogseq,
-  markTaskAsDoing,
-  markTaskAsDone,
-  setTaskScheduledDate,
-} from '../api'
-import { PRIORITY_WEIGHT } from '../constants'
+import { addTaskToLogseq, getTasksFromLogseq } from '../api'
+import { isToday } from '../lib/date'
+import type { LogseqTask, Task, TaskType } from '../types'
 
-export const useTodos = () => {
-  return useQuery({
-    queryKey: ['todos'],
+function mapLogseqTaskToTask(logseqTask: LogseqTask): Task | null {
+  if (logseqTask.status !== 'Todo' && logseqTask.status !== 'Doing') {
+    return null
+  }
+  const title = logseqTask['full-title']
+  if (
+    !title ||
+    title === '' ||
+    title === 'All' ||
+    title === 'Linked references' ||
+    title === 'Errand' ||
+    title === 'Waiting'
+  ) {
+    return null
+  }
+  return {
+    uuid: logseqTask.uuid,
+    displayText: title,
+    status: logseqTask.status,
+    scheduledDate: logseqTask.scheduledDate,
+    isScheduledToday: isToday(logseqTask.scheduledDate),
+    pageName:
+      (logseqTask as unknown as { page?: { name?: string } }).page?.name ??
+      'Unknown',
+    taskType: logseqTask.taskType,
+  }
+}
+
+export function useTasks() {
+  const query = useQuery({
+    queryKey: ['tasks'],
     queryFn: getTasksFromLogseq,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     refetchOnMount: true,
     refetchInterval: 2000,
     staleTime: 0,
-    select: (data) =>
-      data
-        .sort(
-          (a, b) => PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority],
-        )
-        .filter((item) => item.status !== 'Waiting')
-        .filter((item) => item['full-title'] !== '')
-        .filter((item) => item['full-title'] !== 'All')
-        .filter((item) => item['full-title'] !== 'Linked references')
-        .filter((item) => item['full-title'] !== 'Errand')
-        .filter((item) => item['full-title'] !== 'Waiting'),
-  })
-}
-
-export const useAddTodo = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: addTaskToLogseq,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
+    select: (data) => {
+      const tasks: Task[] = []
+      for (const logseqTask of data) {
+        const task = mapLogseqTaskToTask(logseqTask)
+        if (task) tasks.push(task)
+      }
+      return tasks
     },
   })
+
+  return {
+    tasks: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error ? String(query.error) : null,
+    refetch: query.refetch,
+  }
 }
 
-export const useDoneTodo = () => {
+export function useAddTask() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: markTaskAsDone,
+    mutationFn: ({ title, type }: { title: string; type: TaskType }) =>
+      addTaskToLogseq({ title, type }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-    },
-  })
-}
-
-export const useDoingTodo = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: markTaskAsDoing,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-    },
-  })
-}
-
-export const useScheduledTodo = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: setTaskScheduledDate,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
   })
 }

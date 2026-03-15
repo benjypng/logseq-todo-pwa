@@ -1,70 +1,38 @@
-import { ActionIcon, Container, Group } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
-import { IconPlus } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { AddTaskModal, SelectedTask, ToggleTheme, WeekView } from './components'
-import type { LogseqTask } from './types'
+import { FocusMode } from './components/focus-mode'
+import { TaskList } from './components/task-list'
+import { useTasks } from './hooks/use-tasks'
+import type { Task } from './types'
+
+type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
 
 export default function App() {
-  const [opened, setOpened] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<LogseqTask | null>(null)
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const [state, setState] = useState<AppState>({ mode: 'list' })
+  const { tasks, isLoading, error, refetch } = useTasks()
 
-  useEffect(() => {
-    const kbShortcut = (e: KeyboardEvent) => {
-      if (e.key === 'a' && !opened && !selectedTask) {
-        setOpened(true)
-        e.preventDefault()
-      }
-    }
-    window.addEventListener('keydown', kbShortcut)
-    return () => window.removeEventListener('keydown', kbShortcut)
-  }, [opened, selectedTask])
+  const handleEnterFocus = (uuid: string) => {
+    const task = tasks.find((t) => t.uuid === uuid)
+    if (!task) return
+    setState({ mode: 'focus', task })
+  }
 
-  if (selectedTask) {
-    return (
-      <Container size="xl" h="100dvh" py="xl">
-        <SelectedTask
-          selectedTask={selectedTask}
-          setSelectedTask={setSelectedTask}
-        />
-      </Container>
-    )
+  const handleExitFocus = () => {
+    setState({ mode: 'list' })
+    refetch()
+  }
+
+  if (state.mode === 'focus') {
+    return <FocusMode task={state.task} onExit={handleExitFocus} />
   }
 
   return (
-    <Container
-      size="xl"
-      h="100dvh"
-      p={0}
-      style={{ display: 'flex', flexDirection: 'column' }}
-    >
-      <Group p="md" justify="space-between">
-        <ToggleTheme />
-      </Group>
-
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <WeekView
-          onSelectTask={setSelectedTask}
-          daysToShow={isMobile ? 1 : 7}
-        />
-      </div>
-
-      <ActionIcon
-        size={60}
-        radius="xl"
-        variant="filled"
-        pos="fixed"
-        bottom={20}
-        right={20}
-        style={{ zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-        onClick={() => setOpened(true)}
-      >
-        <IconPlus />
-      </ActionIcon>
-
-      <AddTaskModal opened={opened} setOpened={setOpened} />
-    </Container>
+    <TaskList
+      tasks={tasks}
+      isLoading={isLoading}
+      error={error}
+      onEnterFocus={handleEnterFocus}
+      onRefetch={refetch}
+    />
   )
 }
