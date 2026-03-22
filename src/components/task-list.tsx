@@ -44,9 +44,12 @@ export function TaskList({
   const [isScheduling, setIsScheduling] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
-  const sectionTasks = tasks.filter((t) =>
-    activeSection === 'tasks' ? t.taskType === 'task' : t.taskType === 'Errand',
-  )
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
+  const sectionTasks = tasks.filter((t) => {
+    if (t.scheduledDate && t.scheduledDate > today) return false
+    return activeSection === 'tasks' ? t.taskType === 'task' : t.taskType === 'Errand'
+  })
   const todayTasks = sectionTasks.filter((t) => t.isScheduledToday)
   const displayedTasks = activeTab === 'today' ? todayTasks : sectionTasks
 
