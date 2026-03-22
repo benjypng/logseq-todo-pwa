@@ -18,7 +18,7 @@ export function TaskItem({
   onEnterFocus,
 }: TaskItemProps) {
   return (
-    <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+    <div className={`flex items-center gap-3 border-b border-border px-4 py-3${task.isScheduledToday ? ' bg-amber-50 dark:bg-amber-950/30' : ''}`}>
       {showCheckbox && (
         <Checkbox
           checked={isSelected}
@@ -39,7 +39,7 @@ export function TaskItem({
           </Badge>
         )}
         {task.isScheduledToday && (
-          <Badge variant="outline" className="text-xs">
+          <Badge className="bg-amber-500 text-xs text-white hover:bg-amber-500">
             Today
           </Badge>
         )}

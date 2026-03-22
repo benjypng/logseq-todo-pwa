@@ -48,10 +48,16 @@ export function TaskList({
   today.setHours(23, 59, 59, 999)
   const sectionTasks = tasks.filter((t) => {
     if (t.scheduledDate && t.scheduledDate > today) return false
-    return activeSection === 'tasks' ? t.taskType === 'task' : t.taskType === 'Errand'
+    return activeSection === 'tasks'
+      ? t.taskType === 'task'
+      : t.taskType === 'Errand'
   })
   const todayTasks = sectionTasks.filter((t) => t.isScheduledToday)
-  const displayedTasks = activeTab === 'today' ? todayTasks : sectionTasks
+  const sortedSectionTasks = [
+    ...sectionTasks.filter((t) => t.isScheduledToday),
+    ...sectionTasks.filter((t) => !t.isScheduledToday),
+  ]
+  const displayedTasks = activeTab === 'today' ? todayTasks : sortedSectionTasks
 
   const defaultModalType: TaskType =
     activeSection === 'tasks' ? 'task' : 'Errand'
