@@ -74,11 +74,11 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
       const journalDay = page?.['journal-day'] ?? null
       const journalDate = parseJournalDay(journalDay)
 
-      const scheduledTimestamp = task[':logseq.property/scheduled'] as
+      const scheduledRaw = task[':logseq.property/scheduled'] as
         | number
         | undefined
-      const scheduledDate = scheduledTimestamp
-        ? new Date(scheduledTimestamp)
+      const scheduledDate = scheduledRaw
+        ? parseJournalDay(scheduledRaw)
         : null
 
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
