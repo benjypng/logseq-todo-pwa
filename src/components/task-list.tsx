@@ -1,5 +1,5 @@
-import { Plus, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { Moon, Plus, RefreshCw, Sun } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { moveTaskToDate } from '../api'
 import { cn } from '../lib/utils'
@@ -43,6 +43,22 @@ export function TaskList({
   const [selectedUuids, setSelectedUuids] = useState<Set<string>>(new Set())
   const [isScheduling, setIsScheduling] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      return localStorage.getItem('theme') === 'dark'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+    try {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    } catch {
+      // ignore
+    }
+  }, [isDark])
 
   const today = new Date()
   today.setHours(23, 59, 59, 999)
@@ -137,6 +153,17 @@ export function TaskList({
           </button>
         </div>
         <div className="ml-auto flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsDark((d) => !d)}
+          >
+            {isDark ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="icon"

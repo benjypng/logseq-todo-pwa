@@ -29,7 +29,7 @@ export function TaskItem({
       )}
       <button
         type="button"
-        className="flex-1 text-left text-sm leading-snug"
+        className="flex-1 cursor-pointer text-left text-sm leading-snug"
         onClick={() => onEnterFocus(task.uuid)}
       >
         {task.displayText}

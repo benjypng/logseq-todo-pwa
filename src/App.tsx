@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { FocusMode } from './components/focus-mode'
 import { TaskList } from './components/task-list'
@@ -8,6 +8,12 @@ import type { Task } from './types'
 type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
 
 export default function App() {
+  useEffect(() => {
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark')
+    }
+  }, [])
+
   const [state, setState] = useState<AppState>({ mode: 'list' })
   const { tasks, isLoading, error, refetch } = useTasks()
 

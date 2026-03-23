@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format, startOfDay } from 'date-fns'
 import wretch from 'wretch'
 
 import {
@@ -74,11 +74,11 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
       const journalDay = page?.['journal-day'] ?? null
       const journalDate = parseJournalDay(journalDay)
 
-      const scheduledRaw = task[':logseq.property/scheduled'] as
+      const scheduledTimestamp = task[':logseq.property/scheduled'] as
         | number
         | undefined
-      const scheduledDate = scheduledRaw
-        ? parseJournalDay(scheduledRaw)
+      const scheduledDate = scheduledTimestamp
+        ? new Date(scheduledTimestamp)
         : null
 
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
@@ -155,14 +155,11 @@ export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
       })
       .json()
   } else {
-    const yyyy = date.getFullYear()
-    const mm = String(date.getMonth() + 1).padStart(2, '0')
-    const dd = String(date.getDate()).padStart(2, '0')
-    const dateValue = `${yyyy}-${mm}-${dd}`
+    const epoch = startOfDay(date).getTime()
     await api
       .post({
         method: 'logseq.Editor.upsertBlockProperty',
-        args: [uuid, TASK_SCHEDULED_KEY, `[[${dateValue}]]`],
+        args: [uuid, TASK_SCHEDULED_KEY, epoch],
       })
       .json<BaseLogseqBlock>()
   }
