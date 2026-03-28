@@ -8,7 +8,7 @@ export const GET_TASKS_FROM_LOGSEQ = `
 [:find (pull ?b [* {:block/page [:block/name :block/journal-day]}]) ?status ?priority ?tag-name
  :where
    [?t :block/name "task"]
-   [?b :block/refs ?t]
+   [?b :block/tags ?t]
    [(ground "task") ?tag-name]
    (not
      [?e :block/title "Expense"]
