@@ -51,6 +51,19 @@ export function TaskList({
     }
   })
 
+  // Open modal on launch if ?add query param is present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('add')) {
+      setModalOpen(true)
+      params.delete('add')
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params}`
+        : window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [])
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
     try {
@@ -127,7 +140,7 @@ export function TaskList({
 
   const navItemClass = (section: Section) =>
     cn(
-      'py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
+      'py-3.5 text-base font-medium border-b-2 -mb-px transition-colors',
       activeSection === section
         ? 'border-foreground text-foreground'
         : 'border-transparent text-muted-foreground',
@@ -135,7 +148,7 @@ export function TaskList({
 
   return (
     <div className="flex h-dvh flex-col">
-      <div className="flex items-center border-b border-border px-4">
+      <div className="flex items-center justify-between border-b border-border px-4">
         <div className="flex gap-5">
           <button
             type="button"
@@ -152,36 +165,13 @@ export function TaskList({
             Errands
           </button>
         </div>
-        <div className="ml-auto flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsDark((d) => !d)}
-          >
-            {isDark ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRefetch}
-            disabled={isLoading}
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
-            />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsDark((d) => !d)}
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
       </div>
 
       <Tabs
@@ -189,21 +179,23 @@ export function TaskList({
         onValueChange={handleTabChange}
         className="flex flex-1 flex-col overflow-hidden"
       >
-        <div className="px-4 py-2">
+        <div className="px-4 py-3">
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="today">
+            <TabsTrigger value="all" className="text-base py-2">
+              All
+            </TabsTrigger>
+            <TabsTrigger value="today" className="text-base py-2">
               Today {todayTasks.length > 0 && `(${todayTasks.length})`}
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="all" className="flex-1 overflow-y-auto pb-20">
+        <TabsContent value="all" className="flex-1 overflow-y-auto pb-24">
           {error && (
             <p className="px-4 py-3 text-sm text-destructive">{error}</p>
           )}
           {!isLoading && displayedTasks.length === 0 && !error && (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            <p className="px-4 py-8 text-center text-base text-muted-foreground">
               No {activeSection}
             </p>
           )}
@@ -219,9 +211,9 @@ export function TaskList({
           ))}
         </TabsContent>
 
-        <TabsContent value="today" className="flex-1 overflow-y-auto">
+        <TabsContent value="today" className="flex-1 overflow-y-auto pb-24">
           {!isLoading && todayTasks.length === 0 && (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            <p className="px-4 py-8 text-center text-base text-muted-foreground">
               No {activeSection} scheduled for today
             </p>
           )}
@@ -238,12 +230,36 @@ export function TaskList({
         </TabsContent>
       </Tabs>
 
-      {activeTab === 'all' && (
+      {selectedUuids.size > 0 && activeTab === 'all' && (
         <ScheduleBar
           selectedCount={selectedUuids.size}
           onSchedule={handleScheduleForToday}
           isLoading={isScheduling}
         />
+      )}
+
+      {selectedUuids.size === 0 && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onRefetch}
+              disabled={isLoading}
+              className="shrink-0"
+            >
+              <RefreshCw
+                className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
+              />
+            </Button>
+            <Button
+              className="flex-1 py-3 text-base"
+              onClick={() => setModalOpen(true)}
+            >
+              <Plus className="mr-2 h-5 w-5" /> Add Task
+            </Button>
+          </div>
+        </div>
       )}
 
       <AddTaskModal

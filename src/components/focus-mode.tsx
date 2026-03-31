@@ -52,7 +52,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
   }
 
   return (
-    <div className="flex h-dvh flex-col px-6 py-4">
+    <div className="flex h-dvh flex-col px-6 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
@@ -73,24 +73,28 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        <h1 className="text-2xl font-semibold leading-snug">
+        <h1 className="text-3xl font-semibold leading-snug">
           {task.displayText}
         </h1>
         {task.pageName && task.pageName !== 'Unknown' && (
-          <p className="text-sm text-muted-foreground">{task.pageName}</p>
+          <p className="text-base text-muted-foreground">{task.pageName}</p>
         )}
       </div>
 
-      <div className="flex gap-3 pb-6">
+      <div className="flex gap-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <Button
           variant="outline"
-          className="flex-1"
+          className="flex-1 py-3 text-base"
           onClick={handleNotDone}
           disabled={isActing}
         >
           Not Done
         </Button>
-        <Button className="flex-1" onClick={handleComplete} disabled={isActing}>
+        <Button
+          className="flex-1 py-3 text-base"
+          onClick={handleComplete}
+          disabled={isActing}
+        >
           Complete Task
         </Button>
       </div>

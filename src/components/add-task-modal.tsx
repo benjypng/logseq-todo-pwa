@@ -60,14 +60,14 @@ export function AddTaskModal({
         {/* Drag handle */}
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
 
-        <h2 className="mb-4 text-base font-semibold">New item</h2>
+        <h2 className="mb-5 text-lg font-semibold">New item</h2>
 
         {/* Type toggle */}
-        <div className="mb-4 flex gap-2">
+        <div className="mb-5 flex gap-2">
           <button
             type="button"
             className={cn(
-              'flex-1 rounded-lg border py-2 text-sm font-medium transition-colors',
+              'flex-1 rounded-lg border py-3 text-base font-medium transition-colors',
               type === 'task'
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border text-muted-foreground',
@@ -79,7 +79,7 @@ export function AddTaskModal({
           <button
             type="button"
             className={cn(
-              'flex-1 rounded-lg border py-2 text-sm font-medium transition-colors',
+              'flex-1 rounded-lg border py-3 text-base font-medium transition-colors',
               type === 'Errand'
                 ? 'border-foreground bg-foreground text-background'
                 : 'border-border text-muted-foreground',
@@ -100,21 +100,21 @@ export function AddTaskModal({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="mb-4 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+          className="mb-5 w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
         />
 
         {/* Actions */}
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 py-3 text-base"
             onClick={onClose}
             disabled={isPending}
           >
             Cancel
           </Button>
           <Button
-            className="flex-1"
+            className="flex-1 py-3 text-base"
             onClick={handleSubmit}
             disabled={!title.trim() || isPending}
           >

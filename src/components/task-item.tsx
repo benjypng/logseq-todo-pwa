@@ -19,7 +19,7 @@ export function TaskItem({
 }: TaskItemProps) {
   return (
     <div
-      className={`flex items-center gap-3 border-b border-border px-4 py-3${task.isScheduledToday ? ' bg-amber-50 dark:bg-amber-950/30' : ''}`}
+      className={`flex items-center gap-3 border-b border-border px-4 py-4${task.isScheduledToday ? ' bg-amber-50 dark:bg-amber-950/30' : ''}`}
     >
       {showCheckbox && (
         <Checkbox
@@ -29,19 +29,19 @@ export function TaskItem({
       )}
       <button
         type="button"
-        className="flex-1 cursor-pointer text-left text-sm leading-snug"
+        className="flex-1 cursor-pointer text-left text-base leading-snug"
         onClick={() => onEnterFocus(task.uuid)}
       >
         {task.displayText}
       </button>
       <div className="flex shrink-0 gap-1">
         {task.status === 'Doing' && (
-          <Badge variant="default" className="text-xs">
+          <Badge variant="default" className="text-sm">
             In Progress
           </Badge>
         )}
         {task.isScheduledToday && (
-          <Badge className="bg-amber-500 text-xs text-white hover:bg-amber-500">
+          <Badge className="bg-amber-500 text-sm text-white hover:bg-amber-500">
             Today
           </Badge>
         )}
