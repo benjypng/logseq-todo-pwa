@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { markTaskAsDoing, markTaskAsDone, markTaskAsTodo } from '../api'
 import { useGraph } from '../hooks/use-graph'
 import type { Task } from '../types'
-import { Button } from './ui/button'
 
 interface FocusModeProps {
   task: Task
@@ -52,51 +51,55 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
   }
 
   return (
-    <div className="flex h-dvh flex-col px-6 py-4 pt-[calc(1rem+env(safe-area-inset-top))]">
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="icon"
+    <div className="flex h-dvh flex-col bg-background">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2">
+        <button
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-primary active:bg-secondary disabled:opacity-40"
           onClick={handleNotDone}
           disabled={isActing}
         >
           <ArrowLeft className="h-5 w-5" />
-        </Button>
+        </button>
         {graphName && (
           <a
             href={`logseq://graph/${graphName}?block-id=${task.uuid}`}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
           >
             <ExternalLink className="h-4 w-4" />
           </a>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-        <h1 className="text-3xl font-semibold leading-snug">
+      {/* Centered content */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+        <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-foreground">
           {task.displayText}
         </h1>
         {task.pageName && task.pageName !== 'Unknown' && (
-          <p className="text-base text-muted-foreground">{task.pageName}</p>
+          <p className="text-[14px] text-muted-foreground">{task.pageName}</p>
         )}
       </div>
 
-      <div className="flex gap-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-        <Button
-          variant="outline"
-          className="flex-1 py-3 text-base"
+      {/* Bottom actions */}
+      <div className="flex gap-3 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <button
+          type="button"
+          className="flex-1 rounded-2xl border border-border py-3.5 text-[15px] font-semibold text-foreground transition-colors active:bg-secondary disabled:opacity-40"
           onClick={handleNotDone}
           disabled={isActing}
         >
           Not Done
-        </Button>
-        <Button
-          className="flex-1 py-3 text-base"
+        </button>
+        <button
+          type="button"
+          className="flex-1 rounded-2xl bg-primary py-3.5 text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors active:bg-primary/80 disabled:opacity-40"
           onClick={handleComplete}
           disabled={isActing}
         >
-          Complete Task
-        </Button>
+          Complete
+        </button>
       </div>
     </div>
   )

@@ -7,8 +7,6 @@ import type { Task, TaskType } from '../types'
 import { AddTaskModal } from './add-task-modal'
 import { ScheduleBar } from './schedule-bar'
 import { TaskItem } from './task-item'
-import { Button } from './ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 const TAB_STORAGE_KEY = 'logseq-pwa-active-tab'
 
@@ -51,7 +49,6 @@ export function TaskList({
     }
   })
 
-  // Open modal on launch if ?add query param is present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.has('add')) {
@@ -98,8 +95,7 @@ export function TaskList({
     setSelectedUuids(new Set())
   }
 
-  const handleTabChange = (value: string) => {
-    const tab = value as 'all' | 'today'
+  const handleTabChange = (tab: 'all' | 'today') => {
     setActiveTab(tab)
     try {
       localStorage.setItem(TAB_STORAGE_KEY, tab)
@@ -138,98 +134,130 @@ export function TaskList({
     }
   }
 
-  const navItemClass = (section: Section) =>
-    cn(
-      'py-3.5 text-base font-medium border-b-2 -mb-px transition-colors',
-      activeSection === section
-        ? 'border-foreground text-foreground'
-        : 'border-transparent text-muted-foreground',
-    )
+  const sectionLabel = activeSection === 'tasks' ? 'Tasks' : 'Errands'
 
   return (
-    <div className="flex h-dvh flex-col">
-      <div className="flex items-center justify-between border-b border-border px-4">
-        <div className="flex gap-5">
-          <button
-            type="button"
-            className={navItemClass('tasks')}
-            onClick={() => handleSectionChange('tasks')}
-          >
-            Tasks
-          </button>
-          <button
-            type="button"
-            className={navItemClass('errands')}
-            onClick={() => handleSectionChange('errands')}
-          >
-            Errands
-          </button>
+    <div className="flex h-dvh flex-col bg-background">
+      {/* Header */}
+      <div className="px-5 pt-[calc(0.75rem+env(safe-area-inset-top))]">
+        <div className="flex items-center justify-between pb-1">
+          <h1 className="text-[28px] font-bold tracking-tight text-foreground">
+            {sectionLabel}
+          </h1>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
+              onClick={onRefetch}
+              disabled={isLoading}
+            >
+              <RefreshCw
+                className={cn('h-[18px] w-[18px]', isLoading && 'animate-spin')}
+              />
+            </button>
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
+              onClick={() => setIsDark((d) => !d)}
+            >
+              {isDark ? (
+                <Sun className="h-[18px] w-[18px]" />
+              ) : (
+                <Moon className="h-[18px] w-[18px]" />
+              )}
+            </button>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsDark((d) => !d)}
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
+
+        {/* Section & Filter pills */}
+        <div className="flex items-center gap-4 pb-2 pt-1">
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                activeSection === 'tasks'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground active:bg-secondary',
+              )}
+              onClick={() => handleSectionChange('tasks')}
+            >
+              Tasks
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                activeSection === 'errands'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground active:bg-secondary',
+              )}
+              onClick={() => handleSectionChange('errands')}
+            >
+              Errands
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-border" />
+
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                activeTab === 'all'
+                  ? 'bg-secondary text-foreground'
+                  : 'text-muted-foreground active:bg-secondary',
+              )}
+              onClick={() => handleTabChange('all')}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                activeTab === 'today'
+                  ? 'bg-today/15 text-today'
+                  : 'text-muted-foreground active:bg-secondary',
+              )}
+              onClick={() => handleTabChange('today')}
+            >
+              Today{todayTasks.length > 0 ? ` ${todayTasks.length}` : ''}
+            </button>
+          </div>
+        </div>
       </div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="flex flex-1 flex-col overflow-hidden"
-      >
-        <div className="px-4 py-3">
-          <TabsList>
-            <TabsTrigger value="all" className="text-base py-2">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="today" className="text-base py-2">
-              Today {todayTasks.length > 0 && `(${todayTasks.length})`}
-            </TabsTrigger>
-          </TabsList>
-        </div>
+      <div className="mx-5 border-b border-border" />
 
-        <TabsContent value="all" className="flex-1 overflow-y-auto pb-24">
-          {error && (
-            <p className="px-4 py-3 text-sm text-destructive">{error}</p>
-          )}
-          {!isLoading && displayedTasks.length === 0 && !error && (
-            <p className="px-4 py-8 text-center text-base text-muted-foreground">
-              No {activeSection}
+      {/* Task list */}
+      <div className="flex-1 overflow-y-auto pb-24">
+        {error && (
+          <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
+        )}
+        {!isLoading && displayedTasks.length === 0 && !error && (
+          <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
+            <p className="text-[15px] text-muted-foreground">
+              {activeTab === 'today'
+                ? `No ${activeSection} scheduled for today`
+                : `No ${activeSection}`}
             </p>
-          )}
-          {displayedTasks.map((task) => (
-            <TaskItem
-              key={task.uuid}
-              task={task}
-              isSelected={selectedUuids.has(task.uuid)}
-              showCheckbox={true}
-              onToggleSelect={handleToggleSelect}
-              onEnterFocus={onEnterFocus}
-            />
-          ))}
-        </TabsContent>
+          </div>
+        )}
+        {displayedTasks.map((task) => (
+          <TaskItem
+            key={task.uuid}
+            task={task}
+            isSelected={selectedUuids.has(task.uuid)}
+            showCheckbox={activeTab === 'all'}
+            onToggleSelect={handleToggleSelect}
+            onEnterFocus={onEnterFocus}
+          />
+        ))}
+      </div>
 
-        <TabsContent value="today" className="flex-1 overflow-y-auto pb-24">
-          {!isLoading && todayTasks.length === 0 && (
-            <p className="px-4 py-8 text-center text-base text-muted-foreground">
-              No {activeSection} scheduled for today
-            </p>
-          )}
-          {todayTasks.map((task) => (
-            <TaskItem
-              key={task.uuid}
-              task={task}
-              isSelected={false}
-              showCheckbox={false}
-              onToggleSelect={handleToggleSelect}
-              onEnterFocus={onEnterFocus}
-            />
-          ))}
-        </TabsContent>
-      </Tabs>
-
+      {/* Schedule bar */}
       {selectedUuids.size > 0 && activeTab === 'all' && (
         <ScheduleBar
           selectedCount={selectedUuids.size}
@@ -238,27 +266,17 @@ export function TaskList({
         />
       )}
 
+      {/* Floating add button */}
       {selectedUuids.size === 0 && (
-        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onRefetch}
-              disabled={isLoading}
-              className="shrink-0"
-            >
-              <RefreshCw
-                className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
-              />
-            </Button>
-            <Button
-              className="flex-1 py-3 text-base"
-              onClick={() => setModalOpen(true)}
-            >
-              <Plus className="mr-2 h-5 w-5" /> Add Task
-            </Button>
-          </div>
+        <div className="fixed bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3 px-5 bg-gradient-to-t from-background via-background to-transparent">
+          <button
+            type="button"
+            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 active:bg-primary/80 transition-colors"
+            onClick={() => setModalOpen(true)}
+          >
+            <Plus className="h-5 w-5" strokeWidth={2.5} />
+            New {activeSection === 'tasks' ? 'Task' : 'Errand'}
+          </button>
         </div>
       )}
 

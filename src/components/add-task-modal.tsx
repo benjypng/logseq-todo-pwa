@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useAddTask } from '../hooks/use-tasks'
 import { cn } from '../lib/utils'
 import type { TaskType } from '../types'
-import { Button } from './ui/button'
 
 interface AddTaskModalProps {
   open: boolean
@@ -21,12 +20,10 @@ export function AddTaskModal({
   const inputRef = useRef<HTMLInputElement>(null)
   const { mutateAsync, isPending } = useAddTask()
 
-  // Sync type when defaultType changes (section switch)
   useEffect(() => {
     setType(defaultType)
   }, [defaultType])
 
-  // Auto-focus input when modal opens
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50)
@@ -51,26 +48,31 @@ export function AddTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-center">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Bottom sheet */}
-      <div className="relative rounded-t-2xl bg-background px-5 pb-10 pt-5 shadow-xl">
+      <div className="relative rounded-t-2xl bg-background px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 shadow-2xl">
         {/* Drag handle */}
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
+        <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-border" />
 
-        <h2 className="mb-5 text-lg font-semibold">New item</h2>
+        <h2 className="mb-4 text-[20px] font-bold tracking-tight">
+          New {type === 'task' ? 'Task' : 'Errand'}
+        </h2>
 
         {/* Type toggle */}
-        <div className="mb-5 flex gap-2">
+        <div className="mb-4 flex gap-2">
           <button
             type="button"
             className={cn(
-              'flex-1 rounded-lg border py-3 text-base font-medium transition-colors',
+              'flex-1 rounded-xl py-2.5 text-[14px] font-semibold transition-colors',
               type === 'task'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border text-muted-foreground',
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground',
             )}
             onClick={() => setType('task')}
           >
@@ -79,10 +81,10 @@ export function AddTaskModal({
           <button
             type="button"
             className={cn(
-              'flex-1 rounded-lg border py-3 text-base font-medium transition-colors',
+              'flex-1 rounded-xl py-2.5 text-[14px] font-semibold transition-colors',
               type === 'Errand'
-                ? 'border-foreground bg-foreground text-background'
-                : 'border-border text-muted-foreground',
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground',
             )}
             onClick={() => setType('Errand')}
           >
@@ -95,31 +97,32 @@ export function AddTaskModal({
           ref={inputRef}
           type="text"
           placeholder={
-            type === 'task' ? 'Task description…' : 'Errand description…'
+            type === 'task' ? 'What do you want to do?' : 'What errand to run?'
           }
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="mb-5 w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+          className="mb-5 w-full rounded-xl border-none bg-secondary px-4 py-3.5 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
         />
 
         {/* Actions */}
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1 py-3 text-base"
+          <button
+            type="button"
+            className="flex-1 rounded-xl border border-border py-3 text-[15px] font-semibold text-foreground transition-colors active:bg-secondary disabled:opacity-40"
             onClick={onClose}
             disabled={isPending}
           >
             Cancel
-          </Button>
-          <Button
-            className="flex-1 py-3 text-base"
+          </button>
+          <button
+            type="button"
+            className="flex-1 rounded-xl bg-primary py-3 text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors active:bg-primary/80 disabled:opacity-40"
             onClick={handleSubmit}
             disabled={!title.trim() || isPending}
           >
-            {isPending ? 'Adding…' : 'Add'}
-          </Button>
+            {isPending ? 'Adding...' : 'Add'}
+          </button>
         </div>
       </div>
     </div>

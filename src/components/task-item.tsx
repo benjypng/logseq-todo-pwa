@@ -1,5 +1,6 @@
+import { Calendar, Circle } from 'lucide-react'
+
 import type { Task } from '../types'
-import { Badge } from './ui/badge'
 import { Checkbox } from './ui/checkbox'
 
 interface TaskItemProps {
@@ -18,34 +19,46 @@ export function TaskItem({
   onEnterFocus,
 }: TaskItemProps) {
   return (
-    <div
-      className={`flex items-center gap-3 border-b border-border px-4 py-4${task.isScheduledToday ? ' bg-amber-50 dark:bg-amber-950/30' : ''}`}
-    >
-      {showCheckbox && (
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={() => onToggleSelect(task.uuid)}
-        />
+    <div className="group flex items-start gap-3 px-5 py-3">
+      {showCheckbox ? (
+        <div className="pt-0.5">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onToggleSelect(task.uuid)}
+          />
+        </div>
+      ) : (
+        <div className="pt-1">
+          <Circle className="h-[18px] w-[18px] text-border" strokeWidth={2} />
+        </div>
       )}
       <button
         type="button"
-        className="flex-1 cursor-pointer text-left text-base leading-snug"
+        className="flex min-w-0 flex-1 flex-col gap-0.5 text-left"
         onClick={() => onEnterFocus(task.uuid)}
       >
-        {task.displayText}
+        <span className="text-[15px] leading-snug text-foreground">
+          {task.displayText}
+        </span>
+        <div className="flex items-center gap-2">
+          {task.status === 'Doing' && (
+            <span className="text-[12px] font-medium text-doing">
+              In Progress
+            </span>
+          )}
+          {task.isScheduledToday && (
+            <span className="flex items-center gap-1 text-[12px] font-medium text-today">
+              <Calendar className="h-3 w-3" />
+              Today
+            </span>
+          )}
+          {task.pageName && task.pageName !== 'Unknown' && (
+            <span className="truncate text-[12px] text-muted-foreground">
+              {task.pageName}
+            </span>
+          )}
+        </div>
       </button>
-      <div className="flex shrink-0 gap-1">
-        {task.status === 'Doing' && (
-          <Badge variant="default" className="text-sm">
-            In Progress
-          </Badge>
-        )}
-        {task.isScheduledToday && (
-          <Badge className="bg-amber-500 text-sm text-white hover:bg-amber-500">
-            Today
-          </Badge>
-        )}
-      </div>
     </div>
   )
 }
