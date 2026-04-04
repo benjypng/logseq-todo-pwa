@@ -9,6 +9,7 @@ import { ScheduleBar } from './schedule-bar'
 import { TaskItem } from './task-item'
 
 const TAB_STORAGE_KEY = 'logseq-pwa-active-tab'
+const SECTION_STORAGE_KEY = 'logseq-pwa-active-section'
 
 function readStoredTab(): 'all' | 'today' {
   try {
@@ -16,6 +17,15 @@ function readStoredTab(): 'all' | 'today' {
     return v === 'today' ? 'today' : 'all'
   } catch {
     return 'all'
+  }
+}
+
+function readStoredSection(): Section {
+  try {
+    const v = localStorage.getItem(SECTION_STORAGE_KEY)
+    return v === 'errands' ? 'errands' : 'tasks'
+  } catch {
+    return 'tasks'
   }
 }
 
@@ -36,7 +46,7 @@ export function TaskList({
   onEnterFocus,
   onRefetch,
 }: TaskListProps) {
-  const [activeSection, setActiveSection] = useState<Section>('tasks')
+  const [activeSection, setActiveSection] = useState<Section>(readStoredSection)
   const [activeTab, setActiveTab] = useState<'all' | 'today'>(readStoredTab)
   const [selectedUuids, setSelectedUuids] = useState<Set<string>>(new Set())
   const [isScheduling, setIsScheduling] = useState(false)
@@ -92,6 +102,7 @@ export function TaskList({
     setActiveSection(section)
     setActiveTab('all')
     localStorage.setItem(TAB_STORAGE_KEY, 'all')
+    localStorage.setItem(SECTION_STORAGE_KEY, section)
     setSelectedUuids(new Set())
   }
 
