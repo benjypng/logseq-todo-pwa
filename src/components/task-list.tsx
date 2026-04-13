@@ -186,10 +186,10 @@ export function TaskList({
             <button
               type="button"
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
                 activeSection === 'tasks'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground active:bg-secondary',
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/85'
+                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
               )}
               onClick={() => handleSectionChange('tasks')}
             >
@@ -198,10 +198,10 @@ export function TaskList({
             <button
               type="button"
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
                 activeSection === 'errands'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground active:bg-secondary',
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/85'
+                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
               )}
               onClick={() => handleSectionChange('errands')}
             >
@@ -215,10 +215,10 @@ export function TaskList({
             <button
               type="button"
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
                 activeTab === 'all'
-                  ? 'bg-secondary text-foreground'
-                  : 'text-muted-foreground active:bg-secondary',
+                  ? 'bg-secondary text-foreground hover:bg-secondary/70'
+                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
               )}
               onClick={() => handleTabChange('all')}
             >
@@ -227,10 +227,10 @@ export function TaskList({
             <button
               type="button"
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors',
+                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
                 activeTab === 'today'
-                  ? 'bg-today/15 text-today'
-                  : 'text-muted-foreground active:bg-secondary',
+                  ? 'bg-today/15 text-today hover:bg-today/25'
+                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
               )}
               onClick={() => handleTabChange('today')}
             >
@@ -282,7 +282,7 @@ export function TaskList({
         <div className="fixed bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3 px-5 bg-gradient-to-t from-background via-background to-transparent">
           <button
             type="button"
-            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 active:bg-primary/80 transition-colors"
+            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary/85 hover:opacity-100 active:bg-primary/80"
             onClick={() => setModalOpen(true)}
           >
             <Plus className="h-5 w-5" strokeWidth={2.5} />

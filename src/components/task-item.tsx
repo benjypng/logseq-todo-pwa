@@ -19,7 +19,7 @@ export function TaskItem({
   onEnterFocus,
 }: TaskItemProps) {
   return (
-    <div className="group flex items-start gap-3 px-5 py-3">
+    <div className="group flex items-start gap-3 px-5 py-3 transition-colors hover:bg-secondary/50">
       {showCheckbox ? (
         <div className="pt-0.5">
           <Checkbox
@@ -34,7 +34,7 @@ export function TaskItem({
       )}
       <button
         type="button"
-        className="flex min-w-0 flex-1 flex-col gap-0.5 text-left"
+        className="flex min-w-0 flex-1 flex-col gap-0.5 text-left hover:opacity-100"
         onClick={() => onEnterFocus(task.uuid)}
       >
         <span className="text-[15px] leading-snug text-foreground">

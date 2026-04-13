@@ -29,8 +29,24 @@
 }
 
 @layer base {
+  button, [role="button"], [role="tab"], [role="checkbox"], label, select, summary, a {
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a {
+      transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease;
+    }
+    button:not(:disabled):hover, [role="button"]:not([aria-disabled="true"]):hover, a:hover {
+      opacity: 0.75;
+    }
+  }
   * {
     @apply border-border;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
   body {
     @apply bg-background text-foreground;

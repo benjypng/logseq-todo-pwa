@@ -26,6 +26,7 @@ export const GET_TASKS_FROM_LOGSEQ = `
      )
    )
    [(!= ?status "Done")]
+   [(!= ?status "Waiting")]
    (or
      (and
        [?b :logseq.property/priority ?p]
@@ -60,6 +61,7 @@ export const GET_ERRANDS_FROM_LOGSEQ = `
      )
    )
    [(!= ?status "Done")]
+   [(!= ?status "Waiting")]
    (or
      (and
        [?b :logseq.property/priority ?p]
