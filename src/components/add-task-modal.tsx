@@ -39,7 +39,7 @@ export function AddTaskModal({
     if (!trimmed || isPending) return
     await mutateAsync({ title: trimmed, type })
     setTitle('')
-    onClose()
+    inputRef.current?.focus()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -48,17 +48,15 @@ export function AddTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Bottom sheet */}
-      <div className="relative rounded-t-2xl bg-background px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 shadow-2xl">
-        {/* Drag handle */}
-        <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-border" />
+      {/* Centered dialog */}
+      <div className="relative w-full max-w-md rounded-2xl bg-background px-5 pb-6 pt-5 shadow-2xl">
 
         <h2 className="mb-4 text-[20px] font-bold tracking-tight">
           New {type === 'task' ? 'Task' : 'Errand'}
