@@ -57,7 +57,6 @@ export function AddTaskModal({
 
       {/* Centered dialog */}
       <div className="relative w-full max-w-md rounded-2xl bg-background px-5 pb-6 pt-5 shadow-2xl">
-
         <h2 className="mb-4 text-[20px] font-bold tracking-tight">
           New {type === 'task' ? 'Task' : 'Errand'}
         </h2>
