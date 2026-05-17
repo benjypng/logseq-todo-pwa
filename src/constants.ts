@@ -1,5 +1,3 @@
-export const BASE_URL = '/logseq-api/api'
-
 export const TASK_STATUS_KEY = ':logseq.property/status'
 
 export const TASK_SCHEDULED_KEY = ':logseq.property/scheduled'

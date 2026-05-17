@@ -1,7 +1,9 @@
-import { Moon, Plus, RefreshCw, Sun } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Moon, Plus, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 import { moveTaskToDate } from '../api'
+import { getBackend, setBackend } from '../backend'
 import { cn } from '../lib/utils'
 import type { Task, TaskType } from '../types'
 import { AddTaskModal } from './add-task-modal'
@@ -58,6 +60,20 @@ export function TaskList({
       return false
     }
   })
+  const [backend, setBackendState] = useState(getBackend)
+  const addTaskInputRef = useRef<HTMLInputElement>(null)
+
+  const openAddModal = () => {
+    flushSync(() => setModalOpen(true))
+    addTaskInputRef.current?.focus()
+  }
+
+  const handleToggleBackend = () => {
+    const next = backend === 'cli' ? 'http' : 'cli'
+    setBackend(next)
+    setBackendState(next)
+    window.location.reload()
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -165,6 +181,18 @@ export function TaskList({
               <RefreshCw
                 className={cn('h-[18px] w-[18px]', isLoading && 'animate-spin')}
               />
+            </button>
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
+              onClick={handleToggleBackend}
+              title={`Backend: ${backend === 'cli' ? 'CLI (sidecar)' : 'HTTP API'} — click to switch`}
+            >
+              {backend === 'cli' ? (
+                <Terminal className="h-[18px] w-[18px]" />
+              ) : (
+                <Server className="h-[18px] w-[18px]" />
+              )}
             </button>
             <button
               type="button"
@@ -283,7 +311,7 @@ export function TaskList({
           <button
             type="button"
             className="flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary/85 hover:opacity-100 active:bg-primary/80"
-            onClick={() => setModalOpen(true)}
+            onClick={openAddModal}
           >
             <Plus className="h-5 w-5" strokeWidth={2.5} />
             New {activeSection === 'tasks' ? 'Task' : 'Errand'}
@@ -295,6 +323,7 @@ export function TaskList({
         open={modalOpen}
         defaultType={defaultModalType}
         onClose={() => setModalOpen(false)}
+        inputRef={addTaskInputRef}
       />
     </div>
   )

@@ -1,0 +1,102 @@
+import { format } from 'date-fns'
+import wretch from 'wretch'
+
+import { GET_ERRANDS_FROM_LOGSEQ, GET_TASKS_FROM_LOGSEQ } from './constants'
+
+const BASE_URL = '/logseq-cli'
+import type { LogseqTask, MoveTaskProps, Priority, TaskStatus } from './types'
+import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
+
+interface RawLogseqTask {
+  ['full-title']: string
+  uuid: string
+  ['created-at']: number
+  ['updated-at']: number
+  [':logseq.property/status']: number
+  [':logseq.property/priority']: number
+  [':logseq.property/scheduled']?: number
+  page?: {
+    name?: string
+    ['journal-day']?: number
+  }
+}
+
+const api = wretch()
+  .url(BASE_URL)
+  .headers({ 'Content-Type': 'application/json' })
+  .catcherFallback((error: unknown) => {
+    console.error('Sidecar API Error:', error)
+    throw error
+  })
+
+export const getCurrGraphName = async (): Promise<string> => {
+  const { name } = await api.url('/graph').get().json<{ name: string }>()
+  return name
+}
+
+const runQuery = async (
+  edn: string,
+): Promise<[RawLogseqTask, TaskStatus, Priority, string][]> =>
+  api
+    .url('/query')
+    .post({ edn })
+    .json<[RawLogseqTask, TaskStatus, Priority, string][]>()
+
+export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
+  const [allTasks, allErrands] = await Promise.all([
+    runQuery(GET_TASKS_FROM_LOGSEQ),
+    runQuery(GET_ERRANDS_FROM_LOGSEQ),
+  ])
+
+  return allTasks
+    .concat(allErrands)
+    .map(([logseqTask, taskStatus, priority, tagName]) => {
+      const task = logseqTask as Record<string, unknown>
+
+      const page = task.page as { 'journal-day'?: number } | undefined
+      const journalDay = page?.['journal-day'] ?? null
+      const journalDate = parseJournalDay(journalDay)
+
+      const scheduledTimestamp = task[':logseq.property/scheduled'] as
+        | number
+        | undefined
+      const scheduledDate = scheduledTimestamp
+        ? new Date(scheduledTimestamp)
+        : null
+
+      const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
+
+      return {
+        ...logseqTask,
+        status: taskStatus,
+        priority: priority,
+        taskType: tagName as 'task' | 'Errand',
+        journalDate,
+        scheduledDate,
+        effectiveDate,
+      }
+    })
+}
+
+const setStatus = (uuid: string, status: TaskStatus) =>
+  api.url('/task/status').patch({ uuid, status }).res()
+
+export const markTaskAsDone = (uuid: string) => setStatus(uuid, 'Done')
+export const markTaskAsDoing = (uuid: string) => setStatus(uuid, 'Doing')
+export const markTaskAsTodo = (uuid: string) => setStatus(uuid, 'Todo')
+
+export const addTaskToLogseq = async ({
+  title,
+  type,
+}: {
+  title: string
+  type: 'task' | 'Errand'
+}) => {
+  const page = format(new Date(), 'MMM do, yyyy')
+  await api.url('/task').post({ title, type, page }).res()
+}
+
+export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
+  const scheduled = date === null ? null : format(date, 'yyyy-MM-dd')
+  await api.url('/task/scheduled').patch({ uuid, scheduled }).res()
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { useAddTask } from '../hooks/use-tasks'
 import { cn } from '../lib/utils'
@@ -8,16 +8,19 @@ interface AddTaskModalProps {
   open: boolean
   defaultType: TaskType
   onClose: () => void
+  inputRef?: RefObject<HTMLInputElement | null>
 }
 
 export function AddTaskModal({
   open,
   defaultType,
   onClose,
+  inputRef: externalInputRef,
 }: AddTaskModalProps) {
   const [title, setTitle] = useState('')
   const [type, setType] = useState<TaskType>(defaultType)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const internalInputRef = useRef<HTMLInputElement>(null)
+  const inputRef = externalInputRef ?? internalInputRef
   const { mutateAsync, isPending } = useAddTask()
 
   useEffect(() => {
@@ -25,11 +28,7 @@ export function AddTaskModal({
   }, [defaultType])
 
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50)
-    } else {
-      setTitle('')
-    }
+    if (!open) setTitle('')
   }, [open])
 
   if (!open) return null
@@ -71,7 +70,11 @@ export function AddTaskModal({
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-muted-foreground',
             )}
-            onClick={() => setType('task')}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setType('task')
+              inputRef.current?.focus()
+            }}
           >
             Task
           </button>
@@ -83,7 +86,11 @@ export function AddTaskModal({
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-muted-foreground',
             )}
-            onClick={() => setType('Errand')}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setType('Errand')
+              inputRef.current?.focus()
+            }}
           >
             Errand
           </button>
