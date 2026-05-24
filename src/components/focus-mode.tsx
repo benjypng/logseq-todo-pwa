@@ -3,12 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { markTaskAsDoing, markTaskAsDone, markTaskAsTodo } from '../api'
 import { useGraph } from '../hooks/use-graph'
-import type { Task } from '../types'
-
-interface FocusModeProps {
-  task: Task
-  onExit: () => void
-}
+import type { FocusModeProps } from '../types'
 
 export function FocusMode({ task, onExit }: FocusModeProps) {
   const [isActing, setIsActing] = useState(false)

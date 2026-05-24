@@ -1,15 +1,7 @@
 import { Calendar, Circle } from 'lucide-react'
 
-import type { Task } from '../types'
+import type { TaskItemProps } from '../types'
 import { Checkbox } from './ui/checkbox'
-
-interface TaskItemProps {
-  task: Task
-  isSelected: boolean
-  showCheckbox: boolean
-  onToggleSelect: (uuid: string) => void
-  onEnterFocus: (uuid: string) => void
-}
 
 export function TaskItem({
   task,

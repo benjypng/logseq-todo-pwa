@@ -2,6 +2,7 @@ import { format, startOfDay } from 'date-fns'
 import wretch from 'wretch'
 
 import {
+  BASE_URL_API_HTTP,
   GET_ERRANDS_FROM_LOGSEQ,
   GET_TASKS_FROM_LOGSEQ,
   TASK_SCHEDULED_KEY,
@@ -13,28 +14,13 @@ import type {
   LogseqTask,
   MoveTaskProps,
   Priority,
+  RawLogseqTask,
   TaskStatus,
 } from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
 
-const BASE_URL = '/logseq-api/api'
-
-interface RawLogseqTask {
-  ['full-title']: string
-  uuid: string
-  ['created-at']: number
-  ['updated-at']: number
-  [':logseq.property/status']: number
-  [':logseq.property/priority']: number
-  [':logseq.property/scheduled']?: number
-  page?: {
-    name?: string
-    ['journal-day']?: number
-  }
-}
-
 const api = wretch()
-  .url(BASE_URL)
+  .url(BASE_URL_API_HTTP)
   .headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_LOGSEQ_TOKEN}`,

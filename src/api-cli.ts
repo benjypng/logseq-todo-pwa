@@ -1,28 +1,23 @@
 import { format } from 'date-fns'
 import wretch from 'wretch'
 
-import { GET_ERRANDS_FROM_LOGSEQ, GET_TASKS_FROM_LOGSEQ } from './constants'
+import {
+  BASE_URL_API_CLI,
+  GET_ERRANDS_FROM_LOGSEQ,
+  GET_TASKS_FROM_LOGSEQ,
+} from './constants'
 
-const BASE_URL = '/logseq-cli'
-import type { LogseqTask, MoveTaskProps, Priority, TaskStatus } from './types'
+import type {
+  LogseqTask,
+  MoveTaskProps,
+  Priority,
+  RawLogseqTask,
+  TaskStatus,
+} from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
 
-interface RawLogseqTask {
-  ['full-title']: string
-  uuid: string
-  ['created-at']: number
-  ['updated-at']: number
-  [':logseq.property/status']: number
-  [':logseq.property/priority']: number
-  [':logseq.property/scheduled']?: number
-  page?: {
-    name?: string
-    ['journal-day']?: number
-  }
-}
-
 const api = wretch()
-  .url(BASE_URL)
+  .url(BASE_URL_API_CLI)
   .headers({ 'Content-Type': 'application/json' })
   .catcherFallback((error: unknown) => {
     console.error('Sidecar API Error:', error)

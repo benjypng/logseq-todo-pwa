@@ -1,8 +1,4 @@
-interface ScheduleBarProps {
-  selectedCount: number
-  onSchedule: () => void
-  isLoading: boolean
-}
+import type { ScheduleBarProps } from '../types'
 
 export function ScheduleBar({
   selectedCount,

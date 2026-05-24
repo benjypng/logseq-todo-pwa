@@ -1,4 +1,4 @@
-export type Backend = 'cli' | 'http'
+import type { Backend } from './types'
 
 const STORAGE_KEY = 'logseq-pwa-backend'
 const DEFAULT_BACKEND: Backend = 'cli'

@@ -5,7 +5,7 @@ import { flushSync } from 'react-dom'
 import { moveTaskToDate } from '../api'
 import { getBackend, setBackend } from '../backend'
 import { cn } from '../lib/utils'
-import type { Task, TaskType } from '../types'
+import type { Section, TaskListProps, TaskType } from '../types'
 import { AddTaskModal } from './add-task-modal'
 import { ScheduleBar } from './schedule-bar'
 import { TaskItem } from './task-item'
@@ -30,16 +30,6 @@ function readStoredSection(): Section {
     return 'tasks'
   }
 }
-
-interface TaskListProps {
-  tasks: Task[]
-  isLoading: boolean
-  error: string | null
-  onEnterFocus: (uuid: string) => void
-  onRefetch: () => void
-}
-
-type Section = 'tasks' | 'errands'
 
 export function TaskList({
   tasks,
