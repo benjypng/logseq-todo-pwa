@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { startOfDay } from 'date-fns'
 
-import { addTaskToLogseq, getTasksFromLogseq } from '../api'
+import {
+  addTaskToLogseq,
+  getTasksFromLogseq,
+  markTaskAsDone,
+  moveTaskToDate,
+  setTaskDeadline,
+} from '../api'
 import { isToday } from '../lib/date'
 import type { LogseqTask, Task, TaskType } from '../types'
 
@@ -24,6 +31,7 @@ function mapLogseqTaskToTask(logseqTask: LogseqTask): Task | null {
     displayText: title,
     status: logseqTask.status,
     scheduledDate: logseqTask.scheduledDate,
+    deadline: logseqTask.deadline,
     isScheduledToday: isToday(logseqTask.scheduledDate),
     pageName:
       (logseqTask as unknown as { page?: { name?: string } }).page?.name ??
@@ -64,6 +72,61 @@ export function useAddTask() {
   return useMutation({
     mutationFn: ({ title, type }: { title: string; type: TaskType }) =>
       addTaskToLogseq({ title, type }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}
+
+export function useMarkDone() {
+  const queryClient = useQueryClient()
+  return useMutation<
+    void,
+    Error,
+    string,
+    { previous: LogseqTask[] | undefined }
+  >({
+    mutationFn: async (uuid: string) => {
+      await markTaskAsDone(uuid)
+    },
+    onMutate: async (uuid) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const previous = queryClient.getQueryData<LogseqTask[]>(['tasks'])
+      queryClient.setQueryData<LogseqTask[]>(['tasks'], (old) =>
+        old ? old.filter((t) => t.uuid !== uuid) : old,
+      )
+      return { previous }
+    },
+    onError: (_err, _uuid, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(['tasks'], ctx.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}
+
+export function useToggleScheduleToday() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ uuid, clear }: { uuid: string; clear: boolean }) =>
+      moveTaskToDate({
+        uuid,
+        date: clear ? null : startOfDay(new Date()),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    },
+  })
+}
+
+export function useSetDeadline() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ uuid, date }: { uuid: string; date: Date | null }) =>
+      setTaskDeadline({ uuid, date }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },

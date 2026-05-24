@@ -3,9 +3,7 @@ import { useEffect, useState } from 'react'
 import { FocusMode } from './components/focus-mode'
 import { TaskList } from './components/task-list'
 import { useTasks } from './hooks/use-tasks'
-import type { Task } from './types'
-
-type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
+import type { AppState } from './types'
 
 export default function App() {
   useEffect(() => {

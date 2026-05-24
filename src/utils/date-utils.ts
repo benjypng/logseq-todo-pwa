@@ -1,6 +1,4 @@
-import { addDays, format, isBefore, isSameDay, startOfDay } from 'date-fns'
-
-import type { DayColumn, LogseqTask, TasksByDate } from '../types'
+import { format, isBefore, startOfDay } from 'date-fns'
 
 /**
  * Parse Logseq journal day format (YYYYMMDD number) to Date
@@ -39,72 +37,6 @@ export const computeEffectiveDate = (
     return today
   }
   return startOfDay(baseDate)
-}
-
-/**
- * Generate an array of DayColumn objects starting from a given week offset
- */
-export const generateWeekColumns = (
-  weekOffset: number,
-  daysToShow = 7,
-): DayColumn[] => {
-  const today = startOfDay(new Date())
-
-  // For single day view, just show today + offset
-  if (daysToShow === 1) {
-    const date = addDays(today, weekOffset)
-    return [
-      {
-        date,
-        dateKey: formatDateKey(date),
-        dayName: format(date, 'EEE').toUpperCase(),
-        dayNumber: date.getDate(),
-        isToday: isSameDay(date, today),
-        isPast: isBefore(date, today),
-      },
-    ]
-  }
-
-  const weekStart = addDays(today, weekOffset * 7)
-
-  return Array.from({ length: daysToShow }, (_, i) => {
-    const date = addDays(weekStart, i)
-    return {
-      date,
-      dateKey: formatDateKey(date),
-      dayName: format(date, 'EEE').toUpperCase(),
-      dayNumber: date.getDate(),
-      isToday: isSameDay(date, today),
-      isPast: isBefore(date, today),
-    }
-  })
-}
-
-/**
- * Group tasks by their effective date
- */
-export const groupTasksByDate = (tasks: LogseqTask[]): TasksByDate => {
-  const grouped: TasksByDate = {}
-
-  for (const task of tasks) {
-    if (!task.effectiveDate) continue
-    const key = formatDateKey(task.effectiveDate)
-    if (!grouped[key]) {
-      grouped[key] = []
-    }
-    grouped[key].push(task)
-  }
-
-  return grouped
-}
-
-/**
- * Format date for display in week navigation
- */
-export const formatWeekLabel = (weekColumns: DayColumn[]): string => {
-  if (weekColumns.length === 0) return ''
-  const firstDay = weekColumns[0]
-  return format(firstDay.date, 'MMM d')
 }
 
 /**

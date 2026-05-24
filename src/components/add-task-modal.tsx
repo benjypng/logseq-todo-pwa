@@ -1,15 +1,8 @@
-import { type RefObject, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAddTask } from '../hooks/use-tasks'
 import { cn } from '../lib/utils'
-import type { TaskType } from '../types'
-
-interface AddTaskModalProps {
-  open: boolean
-  defaultType: TaskType
-  onClose: () => void
-  inputRef?: RefObject<HTMLInputElement | null>
-}
+import type { AddTaskModalProps, TaskType } from '../types'
 
 export function AddTaskModal({
   open,
@@ -98,7 +91,7 @@ export function AddTaskModal({
 
         {/* Title input */}
         <input
-          ref={inputRef}
+          ref={inputRef as React.RefObject<HTMLInputElement>}
           type="text"
           placeholder={
             type === 'task' ? 'What do you want to do?' : 'What errand to run?'

@@ -2,8 +2,10 @@ import { format, startOfDay } from 'date-fns'
 import wretch from 'wretch'
 
 import {
+  BASE_URL_API_HTTP,
   GET_ERRANDS_FROM_LOGSEQ,
   GET_TASKS_FROM_LOGSEQ,
+  TASK_DEADLINE_KEY,
   TASK_SCHEDULED_KEY,
   TASK_STATUS_KEY,
 } from './constants'
@@ -13,28 +15,14 @@ import type {
   LogseqTask,
   MoveTaskProps,
   Priority,
+  RawLogseqTask,
+  SetDeadlineProps,
   TaskStatus,
 } from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
 
-const BASE_URL = '/logseq-api/api'
-
-interface RawLogseqTask {
-  ['full-title']: string
-  uuid: string
-  ['created-at']: number
-  ['updated-at']: number
-  [':logseq.property/status']: number
-  [':logseq.property/priority']: number
-  [':logseq.property/scheduled']?: number
-  page?: {
-    name?: string
-    ['journal-day']?: number
-  }
-}
-
 const api = wretch()
-  .url(BASE_URL)
+  .url(BASE_URL_API_HTTP)
   .headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_LOGSEQ_TOKEN}`,
@@ -69,7 +57,7 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   return allTasks
     .concat(allErrands)
     .map(([logseqTask, taskStatus, priority, tagName]) => {
-      const task = logseqTask as Record<string, unknown>
+      const task = logseqTask as unknown as Record<string, unknown>
 
       const page = task.page as { 'journal-day'?: number } | undefined
       const journalDay = page?.['journal-day'] ?? null
@@ -82,6 +70,11 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
         ? new Date(scheduledTimestamp)
         : null
 
+      const deadlineTimestamp = task[':logseq.property/deadline'] as
+        | number
+        | undefined
+      const deadline = deadlineTimestamp ? new Date(deadlineTimestamp) : null
+
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
 
       return {
@@ -91,6 +84,7 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
         taskType: tagName as 'task' | 'Errand',
         journalDate,
         scheduledDate,
+        deadline,
         effectiveDate,
       }
     })
@@ -159,6 +153,25 @@ export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
       .post({
         method: 'logseq.Editor.upsertBlockProperty',
         args: [uuid, TASK_SCHEDULED_KEY, epoch],
+      })
+      .json<BaseLogseqBlock>()
+  }
+}
+
+export const setTaskDeadline = async ({ uuid, date }: SetDeadlineProps) => {
+  if (date === null) {
+    await api
+      .post({
+        method: 'logseq.Editor.removeBlockProperty',
+        args: [uuid, TASK_DEADLINE_KEY],
+      })
+      .json()
+  } else {
+    const epoch = startOfDay(date).getTime()
+    await api
+      .post({
+        method: 'logseq.Editor.upsertBlockProperty',
+        args: [uuid, TASK_DEADLINE_KEY, epoch],
       })
       .json<BaseLogseqBlock>()
   }

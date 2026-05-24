@@ -1,3 +1,5 @@
+import type { RefObject } from 'react'
+
 export interface BaseLogseqBlock {
   fullTitle: string
   uuid: string
@@ -16,6 +18,7 @@ export interface LogseqTask {
   taskType: TaskType
   journalDate: Date | null
   scheduledDate: Date | null
+  deadline: Date | null
   effectiveDate: Date | null
 }
 
@@ -37,6 +40,7 @@ export interface Task {
   displayText: string
   status: 'Todo' | 'Doing'
   scheduledDate: Date | null
+  deadline: Date | null
   isScheduledToday: boolean
   pageName: string
   taskType: TaskType
@@ -55,6 +59,7 @@ export interface RawLogseqTask {
   [':logseq.property/status']: number
   [':logseq.property/priority']: number
   [':logseq.property/scheduled']?: number
+  [':logseq.property/deadline']?: number
   page?: {
     name?: string
     ['journal-day']?: number
@@ -66,7 +71,45 @@ export interface ScheduleTaskMutationProps {
   date: Date
 }
 
-export interface WeekViewProps {
-  onSelectTask: (task: LogseqTask) => void
-  daysToShow?: number
+export interface SetDeadlineProps {
+  uuid: string
+  date: Date | null
+}
+
+export type BottomTab = 'today' | 'tasks' | 'errands'
+
+export type Backend = 'cli' | 'http'
+
+export type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
+
+export interface AddTaskModalProps {
+  open: boolean
+  defaultType: TaskType
+  onClose: () => void
+  inputRef?: RefObject<HTMLInputElement | null>
+}
+
+export interface TaskListProps {
+  tasks: Task[]
+  isLoading: boolean
+  error: string | null
+  onEnterFocus: (uuid: string) => void
+  onRefetch: () => void
+}
+
+export interface FocusModeProps {
+  task: Task
+  onExit: () => void
+}
+
+export interface TaskItemProps {
+  task: Task
+  onComplete: (uuid: string) => void
+  onToggleToday: (uuid: string, clear: boolean) => void
+  onEnterFocus: (uuid: string) => void
+}
+
+export interface BottomTabBarProps {
+  active: BottomTab
+  onChange: (tab: BottomTab) => void
 }

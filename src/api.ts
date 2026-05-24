@@ -11,3 +11,4 @@ export const markTaskAsDoing = impl.markTaskAsDoing
 export const markTaskAsTodo = impl.markTaskAsTodo
 export const addTaskToLogseq = impl.addTaskToLogseq
 export const moveTaskToDate = impl.moveTaskToDate
+export const setTaskDeadline = impl.setTaskDeadline
