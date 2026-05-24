@@ -6,7 +6,6 @@ import {
   GET_ERRANDS_FROM_LOGSEQ,
   GET_TASKS_FROM_LOGSEQ,
 } from './constants'
-
 import type {
   LogseqTask,
   MoveTaskProps,
