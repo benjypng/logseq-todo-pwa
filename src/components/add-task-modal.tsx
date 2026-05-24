@@ -91,7 +91,7 @@ export function AddTaskModal({
 
         {/* Title input */}
         <input
-          ref={inputRef}
+          ref={inputRef as React.RefObject<HTMLInputElement>}
           type="text"
           placeholder={
             type === 'task' ? 'What do you want to do?' : 'What errand to run?'

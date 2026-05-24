@@ -1,34 +1,63 @@
 import { Moon, Plus, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
-import { moveTaskToDate } from '../api'
 import { getBackend, setBackend } from '../backend'
+import { useMarkDone, useToggleScheduleToday } from '../hooks/use-tasks'
+import { isToday } from '../lib/date'
 import { cn } from '../lib/utils'
-import type { Section, TaskListProps, TaskType } from '../types'
+import type { BottomTab, Task, TaskListProps, TaskType } from '../types'
 import { AddTaskModal } from './add-task-modal'
-import { ScheduleBar } from './schedule-bar'
+import { BottomTabBar } from './bottom-tab-bar'
 import { TaskItem } from './task-item'
 
-const TAB_STORAGE_KEY = 'logseq-pwa-active-tab'
-const SECTION_STORAGE_KEY = 'logseq-pwa-active-section'
+const TAB_STORAGE_KEY = 'logseq-pwa-bottom-tab'
 
-function readStoredTab(): 'all' | 'today' {
+function readStoredTab(): BottomTab {
   try {
     const v = localStorage.getItem(TAB_STORAGE_KEY)
-    return v === 'today' ? 'today' : 'all'
+    if (v === 'today' || v === 'tasks' || v === 'errands') return v
   } catch {
-    return 'all'
+    // ignore
   }
+  return 'today'
 }
 
-function readStoredSection(): Section {
-  try {
-    const v = localStorage.getItem(SECTION_STORAGE_KEY)
-    return v === 'errands' ? 'errands' : 'tasks'
-  } catch {
-    return 'tasks'
+interface Section {
+  label: string
+  tasks: Task[]
+}
+
+function groupTasks(tasks: Task[]): Section[] {
+  const now = Date.now()
+  const overdue: Task[] = []
+  const today: Task[] = []
+  const upcoming: Task[] = []
+  const unscheduled: Task[] = []
+
+  for (const t of tasks) {
+    if (t.isScheduledToday) {
+      today.push(t)
+    } else if (t.scheduledDate && t.scheduledDate.getTime() < now) {
+      overdue.push(t)
+    } else if (t.scheduledDate) {
+      upcoming.push(t)
+    } else {
+      unscheduled.push(t)
+    }
   }
+
+  upcoming.sort(
+    (a, b) =>
+      (a.scheduledDate?.getTime() ?? 0) - (b.scheduledDate?.getTime() ?? 0),
+  )
+
+  const out: Section[] = []
+  if (overdue.length) out.push({ label: 'Overdue', tasks: overdue })
+  if (today.length) out.push({ label: 'Today', tasks: today })
+  if (upcoming.length) out.push({ label: 'Upcoming', tasks: upcoming })
+  if (unscheduled.length) out.push({ label: 'No date', tasks: unscheduled })
+  return out
 }
 
 export function TaskList({
@@ -38,10 +67,7 @@ export function TaskList({
   onEnterFocus,
   onRefetch,
 }: TaskListProps) {
-  const [activeSection, setActiveSection] = useState<Section>(readStoredSection)
-  const [activeTab, setActiveTab] = useState<'all' | 'today'>(readStoredTab)
-  const [selectedUuids, setSelectedUuids] = useState<Set<string>>(new Set())
-  const [isScheduling, setIsScheduling] = useState(false)
+  const [activeTab, setActiveTab] = useState<BottomTab>(readStoredTab)
   const [modalOpen, setModalOpen] = useState(false)
   const [isDark, setIsDark] = useState(() => {
     try {
@@ -52,6 +78,9 @@ export function TaskList({
   })
   const [backend, setBackendState] = useState(getBackend)
   const addTaskInputRef = useRef<HTMLInputElement>(null)
+
+  const markDone = useMarkDone()
+  const toggleToday = useToggleScheduleToday()
 
   const openAddModal = () => {
     flushSync(() => setModalOpen(true))
@@ -86,87 +115,86 @@ export function TaskList({
     }
   }, [isDark])
 
-  const today = new Date()
-  today.setHours(23, 59, 59, 999)
-  const sectionTasks = tasks.filter((t) => {
-    if (t.scheduledDate && t.scheduledDate > today) return false
-    return activeSection === 'tasks'
-      ? t.taskType === 'task'
-      : t.taskType === 'Errand'
-  })
-  const todayTasks = sectionTasks.filter((t) => t.isScheduledToday)
-  const sortedSectionTasks = [
-    ...sectionTasks.filter((t) => t.isScheduledToday),
-    ...sectionTasks.filter((t) => !t.isScheduledToday),
-  ]
-  const displayedTasks = activeTab === 'today' ? todayTasks : sortedSectionTasks
-
-  const defaultModalType: TaskType =
-    activeSection === 'tasks' ? 'task' : 'Errand'
-
-  const handleSectionChange = (section: Section) => {
-    setActiveSection(section)
-    setActiveTab('all')
-    localStorage.setItem(TAB_STORAGE_KEY, 'all')
-    localStorage.setItem(SECTION_STORAGE_KEY, section)
-    setSelectedUuids(new Set())
-  }
-
-  const handleTabChange = (tab: 'all' | 'today') => {
+  const handleTabChange = (tab: BottomTab) => {
     setActiveTab(tab)
     try {
       localStorage.setItem(TAB_STORAGE_KEY, tab)
     } catch {
       // ignore
     }
-    setSelectedUuids(new Set())
   }
 
-  const handleToggleSelect = (uuid: string) => {
-    setSelectedUuids((prev) => {
-      const next = new Set(prev)
-      if (next.has(uuid)) {
-        next.delete(uuid)
-      } else {
-        next.add(uuid)
-      }
-      return next
-    })
-  }
-
-  const handleScheduleForToday = async () => {
-    setIsScheduling(true)
-    try {
-      const today = new Date()
-      const updates = sectionTasks
-        .filter((t) => selectedUuids.has(t.uuid))
-        .map((task) => moveTaskToDate({ uuid: task.uuid, date: today }))
-      await Promise.all(updates)
-      setSelectedUuids(new Set())
-      onRefetch()
-    } catch (err) {
-      console.error('Failed to schedule tasks:', err)
-    } finally {
-      setIsScheduling(false)
+  const filtered = useMemo(() => {
+    if (activeTab === 'today') {
+      return tasks.filter(
+        (t) =>
+          t.isScheduledToday ||
+          (t.scheduledDate && t.scheduledDate.getTime() < Date.now()) ||
+          (t.deadline && isToday(t.deadline)),
+      )
     }
+    return tasks.filter((t) =>
+      activeTab === 'tasks' ? t.taskType === 'task' : t.taskType === 'Errand',
+    )
+  }, [tasks, activeTab])
+
+  const sections = useMemo(() => {
+    if (activeTab === 'today') {
+      // Flat list — already filtered to today/overdue
+      return [{ label: '', tasks: filtered }]
+    }
+    return groupTasks(filtered)
+  }, [filtered, activeTab])
+
+  const defaultModalType: TaskType = activeTab === 'errands' ? 'Errand' : 'task'
+
+  const headerLabel =
+    activeTab === 'today'
+      ? 'Today'
+      : activeTab === 'tasks'
+        ? 'Tasks'
+        : 'Errands'
+
+  const todayCount = useMemo(
+    () =>
+      tasks.filter(
+        (t) =>
+          t.isScheduledToday ||
+          (t.scheduledDate && t.scheduledDate.getTime() < Date.now()),
+      ).length,
+    [tasks],
+  )
+
+  const handleComplete = (uuid: string) => {
+    markDone.mutate(uuid)
   }
 
-  const sectionLabel = activeSection === 'tasks' ? 'Tasks' : 'Errands'
+  const handleToggleToday = (uuid: string, clear: boolean) => {
+    toggleToday.mutate({ uuid, clear })
+  }
 
   return (
     <div className="flex h-dvh flex-col bg-background">
       {/* Header */}
       <div className="px-5 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between pb-1">
-          <h1 className="text-[28px] font-bold tracking-tight text-foreground">
-            {sectionLabel}
-          </h1>
+        <div className="flex items-center justify-between pb-2">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-[28px] font-bold tracking-tight text-foreground">
+              {headerLabel}
+            </h1>
+            {activeTab === 'today' && todayCount > 0 && (
+              <span className="text-[15px] font-medium text-muted-foreground">
+                {todayCount}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <button
               type="button"
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
               onClick={onRefetch}
               disabled={isLoading}
+              aria-label="Refresh"
             >
               <RefreshCw
                 className={cn('h-[18px] w-[18px]', isLoading && 'animate-spin')}
@@ -177,6 +205,7 @@ export function TaskList({
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
               onClick={handleToggleBackend}
               title={`Backend: ${backend === 'cli' ? 'CLI (sidecar)' : 'HTTP API'} — click to switch`}
+              aria-label="Toggle backend"
             >
               {backend === 'cli' ? (
                 <Terminal className="h-[18px] w-[18px]" />
@@ -188,6 +217,7 @@ export function TaskList({
               type="button"
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
               onClick={() => setIsDark((d) => !d)}
+              aria-label="Toggle dark mode"
             >
               {isDark ? (
                 <Sun className="h-[18px] w-[18px]" />
@@ -197,117 +227,59 @@ export function TaskList({
             </button>
           </div>
         </div>
-
-        {/* Section & Filter pills */}
-        <div className="flex items-center gap-4 pb-2 pt-1">
-          <div className="flex gap-1.5">
-            <button
-              type="button"
-              className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
-                activeSection === 'tasks'
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/85'
-                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
-              )}
-              onClick={() => handleSectionChange('tasks')}
-            >
-              Tasks
-            </button>
-            <button
-              type="button"
-              className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
-                activeSection === 'errands'
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/85'
-                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
-              )}
-              onClick={() => handleSectionChange('errands')}
-            >
-              Errands
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-border" />
-
-          <div className="flex gap-1.5">
-            <button
-              type="button"
-              className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
-                activeTab === 'all'
-                  ? 'bg-secondary text-foreground hover:bg-secondary/70'
-                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
-              )}
-              onClick={() => handleTabChange('all')}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              className={cn(
-                'rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors hover:opacity-100',
-                activeTab === 'today'
-                  ? 'bg-today/15 text-today hover:bg-today/25'
-                  : 'text-muted-foreground hover:bg-secondary active:bg-secondary',
-              )}
-              onClick={() => handleTabChange('today')}
-            >
-              Today{todayTasks.length > 0 ? ` ${todayTasks.length}` : ''}
-            </button>
-          </div>
-        </div>
       </div>
 
-      <div className="mx-5 border-b border-border" />
-
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
         {error && (
           <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
         )}
-        {!isLoading && displayedTasks.length === 0 && !error && (
+        {!isLoading && filtered.length === 0 && !error && (
           <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
             <p className="text-[15px] text-muted-foreground">
               {activeTab === 'today'
-                ? `No ${activeSection} scheduled for today`
-                : `No ${activeSection}`}
+                ? 'Nothing scheduled for today'
+                : activeTab === 'tasks'
+                  ? 'No tasks'
+                  : 'No errands'}
             </p>
           </div>
         )}
-        {displayedTasks.map((task) => (
-          <TaskItem
-            key={task.uuid}
-            task={task}
-            isSelected={selectedUuids.has(task.uuid)}
-            showCheckbox={activeTab === 'all'}
-            onToggleSelect={handleToggleSelect}
-            onEnterFocus={onEnterFocus}
-          />
+        {sections.map((section, i) => (
+          <div key={section.label || `s-${i}`}>
+            {section.label && (
+              <div className="px-5 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {section.label}
+              </div>
+            )}
+            <div className="divide-y divide-border/60">
+              {section.tasks.map((task) => (
+                <TaskItem
+                  key={task.uuid}
+                  task={task}
+                  onComplete={handleComplete}
+                  onToggleToday={handleToggleToday}
+                  onEnterFocus={onEnterFocus}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Schedule bar */}
-      {selectedUuids.size > 0 && activeTab === 'all' && (
-        <ScheduleBar
-          selectedCount={selectedUuids.size}
-          onSchedule={handleScheduleForToday}
-          isLoading={isScheduling}
-        />
-      )}
+      <button
+        type="button"
+        onClick={openAddModal}
+        aria-label="Add task"
+        className="fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
+        style={{
+          bottom: 'calc(4.5rem + env(safe-area-inset-bottom))',
+        }}
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </button>
 
-      {/* Floating add button */}
-      {selectedUuids.size === 0 && (
-        <div className="fixed bottom-0 left-0 right-0 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-3 px-5 bg-gradient-to-t from-background via-background to-transparent">
-          <button
-            type="button"
-            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors hover:bg-primary/85 hover:opacity-100 active:bg-primary/80"
-            onClick={openAddModal}
-          >
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-            New {activeSection === 'tasks' ? 'Task' : 'Errand'}
-          </button>
-        </div>
-      )}
+      <BottomTabBar active={activeTab} onChange={handleTabChange} />
 
       <AddTaskModal
         open={modalOpen}

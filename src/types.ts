@@ -18,6 +18,7 @@ export interface LogseqTask {
   taskType: TaskType
   journalDate: Date | null
   scheduledDate: Date | null
+  deadline: Date | null
   effectiveDate: Date | null
 }
 
@@ -39,6 +40,7 @@ export interface Task {
   displayText: string
   status: 'Todo' | 'Doing'
   scheduledDate: Date | null
+  deadline: Date | null
   isScheduledToday: boolean
   pageName: string
   taskType: TaskType
@@ -57,6 +59,7 @@ export interface RawLogseqTask {
   [':logseq.property/status']: number
   [':logseq.property/priority']: number
   [':logseq.property/scheduled']?: number
+  [':logseq.property/deadline']?: number
   page?: {
     name?: string
     ['journal-day']?: number
@@ -68,16 +71,16 @@ export interface ScheduleTaskMutationProps {
   date: Date
 }
 
-export interface WeekViewProps {
-  onSelectTask: (task: LogseqTask) => void
-  daysToShow?: number
+export interface SetDeadlineProps {
+  uuid: string
+  date: Date | null
 }
+
+export type BottomTab = 'today' | 'tasks' | 'errands'
 
 export type Backend = 'cli' | 'http'
 
 export type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
-
-export type Section = 'tasks' | 'errands'
 
 export interface AddTaskModalProps {
   open: boolean
@@ -101,14 +104,12 @@ export interface FocusModeProps {
 
 export interface TaskItemProps {
   task: Task
-  isSelected: boolean
-  showCheckbox: boolean
-  onToggleSelect: (uuid: string) => void
+  onComplete: (uuid: string) => void
+  onToggleToday: (uuid: string, clear: boolean) => void
   onEnterFocus: (uuid: string) => void
 }
 
-export interface ScheduleBarProps {
-  selectedCount: number
-  onSchedule: () => void
-  isLoading: boolean
+export interface BottomTabBarProps {
+  active: BottomTab
+  onChange: (tab: BottomTab) => void
 }

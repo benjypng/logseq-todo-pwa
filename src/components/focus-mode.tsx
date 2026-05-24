@@ -1,27 +1,21 @@
-import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { format } from 'date-fns'
+import { ArrowLeft, ExternalLink, Flag } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import { markTaskAsDoing, markTaskAsDone, markTaskAsTodo } from '../api'
 import { useGraph } from '../hooks/use-graph'
+import { useSetDeadline } from '../hooks/use-tasks'
 import type { FocusModeProps } from '../types'
 
 export function FocusMode({ task, onExit }: FocusModeProps) {
   const [isActing, setIsActing] = useState(false)
   const { data: graphName } = useGraph()
+  const setDeadline = useSetDeadline()
+  const deadlineInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     markTaskAsDoing(task.uuid).catch(console.error)
   }, [task.uuid])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleNotDone()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  })
 
   const handleNotDone = () => {
     if (isActing) return
@@ -34,6 +28,16 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
       })
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleNotDone()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   const handleComplete = () => {
     if (isActing) return
     setIsActing(true)
@@ -45,6 +49,18 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
       })
   }
 
+  const handleDeadlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (!value) {
+      setDeadline.mutate({ uuid: task.uuid, date: null })
+      return
+    }
+    const [y, m, d] = value.split('-').map(Number)
+    setDeadline.mutate({ uuid: task.uuid, date: new Date(y, m - 1, d) })
+  }
+
+  const deadlineValue = task.deadline ? format(task.deadline, 'yyyy-MM-dd') : ''
+
   return (
     <div className="flex h-dvh flex-col bg-background">
       {/* Top bar */}
@@ -54,6 +70,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
           className="flex h-10 w-10 items-center justify-center rounded-full text-primary active:bg-secondary disabled:opacity-40"
           onClick={handleNotDone}
           disabled={isActing}
+          aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -61,6 +78,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
           <a
             href={`logseq://graph/${graphName}?block-id=${task.uuid}`}
             className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
+            aria-label="Open in Logseq"
           >
             <ExternalLink className="h-4 w-4" />
           </a>
@@ -74,6 +92,33 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
         </h1>
         {task.pageName && task.pageName !== 'Unknown' && (
           <p className="text-[14px] text-muted-foreground">{task.pageName}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => deadlineInputRef.current?.showPicker?.()}
+          className="mt-2 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[13px] font-medium text-foreground active:bg-secondary"
+        >
+          <Flag className="h-3.5 w-3.5 text-accent" />
+          {task.deadline
+            ? `Deadline: ${format(task.deadline, 'MMM d, yyyy')}`
+            : 'Set deadline'}
+          <input
+            ref={deadlineInputRef}
+            type="date"
+            value={deadlineValue}
+            onChange={handleDeadlineChange}
+            className="sr-only"
+            aria-label="Deadline date"
+          />
+        </button>
+        {task.deadline && (
+          <button
+            type="button"
+            onClick={() => setDeadline.mutate({ uuid: task.uuid, date: null })}
+            className="text-[12px] text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Clear deadline
+          </button>
         )}
       </div>
 

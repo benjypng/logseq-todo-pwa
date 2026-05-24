@@ -11,6 +11,7 @@ import type {
   MoveTaskProps,
   Priority,
   RawLogseqTask,
+  SetDeadlineProps,
   TaskStatus,
 } from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
@@ -45,7 +46,7 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
   return allTasks
     .concat(allErrands)
     .map(([logseqTask, taskStatus, priority, tagName]) => {
-      const task = logseqTask as Record<string, unknown>
+      const task = logseqTask as unknown as Record<string, unknown>
 
       const page = task.page as { 'journal-day'?: number } | undefined
       const journalDay = page?.['journal-day'] ?? null
@@ -58,6 +59,11 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
         ? new Date(scheduledTimestamp)
         : null
 
+      const deadlineTimestamp = task[':logseq.property/deadline'] as
+        | number
+        | undefined
+      const deadline = deadlineTimestamp ? new Date(deadlineTimestamp) : null
+
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
 
       return {
@@ -67,6 +73,7 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
         taskType: tagName as 'task' | 'Errand',
         journalDate,
         scheduledDate,
+        deadline,
         effectiveDate,
       }
     })
@@ -93,4 +100,9 @@ export const addTaskToLogseq = async ({
 export const moveTaskToDate = async ({ uuid, date }: MoveTaskProps) => {
   const scheduled = date === null ? null : format(date, 'yyyy-MM-dd')
   await api.url('/task/scheduled').patch({ uuid, scheduled }).res()
+}
+
+export const setTaskDeadline = async ({ uuid, date }: SetDeadlineProps) => {
+  const deadline = date === null ? null : format(date, 'yyyy-MM-dd')
+  await api.url('/task/deadline').patch({ uuid, deadline }).res()
 }

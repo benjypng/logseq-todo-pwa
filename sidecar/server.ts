@@ -106,6 +106,19 @@ Bun.serve({
         return ok({ ok: true })
       }
 
+      // PATCH /task/deadline  body: { uuid, deadline: "YYYY-MM-DD" | null }
+      if (req.method === 'PATCH' && url.pathname === '/task/deadline') {
+        const { uuid, deadline } = (await req.json()) as {
+          uuid: string
+          deadline: string | null
+        }
+        const args = ['upsert', 'task', '--uuid', uuid]
+        if (deadline === null) args.push('--no-deadline')
+        else args.push('--deadline', deadline)
+        await runLogseq(args)
+        return ok({ ok: true })
+      }
+
       // POST /task  body: { title, type: "task"|"Errand", page }
       // Uses `upsert block` (not `upsert task`) so the block carries only
       // the requested tag — `upsert task` always attaches the Task tag,
