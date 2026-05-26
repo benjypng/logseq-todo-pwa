@@ -33,7 +33,7 @@
   html,
   body,
   #root {
-    height: 100%;
+    height: var(--app-height, 100%);
   }
   button,
   [role="button"],
