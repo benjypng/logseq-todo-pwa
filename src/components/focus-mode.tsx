@@ -62,7 +62,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
   const deadlineValue = task.deadline ? format(task.deadline, 'yyyy-MM-dd') : ''
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background">
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2">
         <button
