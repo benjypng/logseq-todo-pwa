@@ -1,4 +1,4 @@
-import { Moon, Plus, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
+import { Moon, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
@@ -267,19 +267,11 @@ export function TaskList({
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={openAddModal}
-        aria-label="Add task"
-        className="fixed right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
-        style={{
-          bottom: 'calc(4.5rem + env(safe-area-inset-bottom))',
-        }}
-      >
-        <Plus className="h-6 w-6" strokeWidth={2.5} />
-      </button>
-
-      <BottomTabBar active={activeTab} onChange={handleTabChange} />
+      <BottomTabBar
+        active={activeTab}
+        onChange={handleTabChange}
+        onAdd={openAddModal}
+      />
 
       <AddTaskModal
         open={modalOpen}

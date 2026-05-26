@@ -112,4 +112,5 @@ export interface TaskItemProps {
 export interface BottomTabBarProps {
   active: BottomTab
   onChange: (tab: BottomTab) => void
+  onAdd: () => void
 }
