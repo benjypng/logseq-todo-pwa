@@ -30,11 +30,6 @@
 }
 
 @layer base {
-  html,
-  body,
-  #root {
-    height: 100%;
-  }
   button,
   [role="button"],
   [role="tab"],

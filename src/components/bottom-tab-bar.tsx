@@ -12,7 +12,7 @@ const TABS: { value: BottomTab; label: string; Icon: typeof Sun }[] = [
 export function BottomTabBar({ active, onChange }: BottomTabBarProps) {
   return (
     <nav
-      className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
       aria-label="Primary"
     >
       <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pt-1">
