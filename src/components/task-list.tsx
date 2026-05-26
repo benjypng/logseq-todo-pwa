@@ -7,6 +7,7 @@ import { useMarkDone, useToggleScheduleToday } from '../hooks/use-tasks'
 import { isToday } from '../lib/date'
 import { cn } from '../lib/utils'
 import type { BottomTab, Task, TaskListProps, TaskType } from '../types'
+import { isIosStandalone, nudgeViewportStaggered } from '../utils/ios-pwa'
 import { AddTaskModal } from './add-task-modal'
 import { BottomTabBar } from './bottom-tab-bar'
 import { TaskItem } from './task-item'
@@ -276,7 +277,10 @@ export function TaskList({
       <AddTaskModal
         open={modalOpen}
         defaultType={defaultModalType}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false)
+          if (isIosStandalone()) nudgeViewportStaggered()
+        }}
         inputRef={addTaskInputRef}
       />
     </div>
