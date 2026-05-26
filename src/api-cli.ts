@@ -15,6 +15,7 @@ import type {
   TaskStatus,
 } from './types'
 import { computeEffectiveDate, parseJournalDay } from './utils/date-utils'
+import { resolveTitleRefs } from './utils/resolve-refs'
 
 const api = wretch()
   .url(BASE_URL_API_CLI)
@@ -66,8 +67,14 @@ export const getTasksFromLogseq = async (): Promise<LogseqTask[]> => {
 
       const effectiveDate = computeEffectiveDate(journalDate, scheduledDate)
 
+      const resolvedTitle = resolveTitleRefs(
+        task['full-title'] as string | undefined,
+        task.refs,
+      )
+
       return {
         ...logseqTask,
+        'full-title': resolvedTitle,
         status: taskStatus,
         priority: priority,
         taskType: tagName as 'task' | 'Errand',

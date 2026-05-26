@@ -9,7 +9,7 @@ export const BASE_URL_API_HTTP = '/logseq-api/api'
 export const BASE_URL_API_CLI = '/logseq-cli'
 
 export const GET_TASKS_FROM_LOGSEQ = `
-[:find (pull ?b [* {:block/page [:block/name :block/journal-day]}]) ?status ?priority ?tag-name
+[:find (pull ?b [* {:block/page [:block/name :block/journal-day]} {:block/refs [:block/uuid :block/title]}]) ?status ?priority ?tag-name
  :where
    [?t :block/name "task"]
    [?b :block/tags ?t]
@@ -46,7 +46,7 @@ export const GET_TASKS_FROM_LOGSEQ = `
 `
 
 export const GET_ERRANDS_FROM_LOGSEQ = `
-[:find (pull ?b [* {:block/page [:block/name :block/journal-day]}]) ?status ?priority ?tag-name
+[:find (pull ?b [* {:block/page [:block/name :block/journal-day]} {:block/refs [:block/uuid :block/title]}]) ?status ?priority ?tag-name
  :where
    [?parent :block/title "Task"]
    [?t :logseq.property.class/extends ?parent]
