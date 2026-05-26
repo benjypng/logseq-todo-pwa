@@ -78,6 +78,7 @@ export function TaskList({
   })
   const [backend, setBackendState] = useState(getBackend)
   const addTaskInputRef = useRef<HTMLInputElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const markDone = useMarkDone()
   const toggleToday = useToggleScheduleToday()
@@ -104,6 +105,21 @@ export function TaskList({
         : window.location.pathname
       window.history.replaceState({}, '', newUrl)
     }
+  }, [])
+
+  useEffect(() => {
+    // iOS standalone PWA cold-start workaround: nudge the scroll container
+    // so iOS recomputes position-fixed coords against the visible viewport,
+    // not the launch-time layout viewport.
+    const el = scrollRef.current
+    if (!el) return
+    const id = window.requestAnimationFrame(() => {
+      el.scrollTop = 1
+      window.requestAnimationFrame(() => {
+        el.scrollTop = 0
+      })
+    })
+    return () => window.cancelAnimationFrame(id)
   }, [])
 
   useEffect(() => {
@@ -230,7 +246,10 @@ export function TaskList({
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
+      >
         {error && (
           <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
         )}
