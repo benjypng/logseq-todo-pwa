@@ -230,7 +230,7 @@ export function TaskList({
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+      <div className="flex-1 overflow-y-auto pb-20">
         {error && (
           <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
         )}
