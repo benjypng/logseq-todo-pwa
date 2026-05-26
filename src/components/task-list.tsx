@@ -174,7 +174,7 @@ export function TaskList({
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
       {/* Header */}
       <div className="px-5 pt-[calc(0.75rem+env(safe-area-inset-top))]">
         <div className="flex items-center justify-between pb-2">
