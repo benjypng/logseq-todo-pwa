@@ -98,7 +98,7 @@ export const addTaskToLogseq = async ({
   type,
 }: {
   title: string
-  type: 'task' | 'Errand'
+  type: 'task' | 'Errand' | 'Inbox'
 }) => {
   const page = format(new Date(), 'MMM do, yyyy')
   await api.url('/task').post({ title, type, page }).res()

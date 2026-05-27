@@ -9,7 +9,7 @@ import {
   setTaskDeadline,
 } from '../api'
 import { isToday } from '../lib/date'
-import type { LogseqTask, Task, TaskType } from '../types'
+import type { AddType, LogseqTask, Task, TaskType } from '../types'
 
 function mapLogseqTaskToTask(logseqTask: LogseqTask): Task | null {
   if (logseqTask.status !== 'Todo' && logseqTask.status !== 'Doing') {
@@ -70,7 +70,7 @@ export function useTasks() {
 export function useAddTask() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ title, type }: { title: string; type: TaskType }) =>
+    mutationFn: ({ title, type }: { title: string; type: AddType }) =>
       addTaskToLogseq({ title, type }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })

@@ -1,15 +1,13 @@
 import { Moon, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 
 import { getBackend, setBackend } from '../backend'
 import { useMarkDone, useToggleScheduleToday } from '../hooks/use-tasks'
 import { isToday } from '../lib/date'
 import { cn } from '../lib/utils'
-import type { BottomTab, Task, TaskListProps, TaskType } from '../types'
-import { isIosStandalone, nudgeViewportStaggered } from '../utils/ios-pwa'
-import { AddTaskModal } from './add-task-modal'
+import type { AddType, BottomTab, Task, TaskListProps } from '../types'
 import { BottomTabBar } from './bottom-tab-bar'
+import { InlineAddTask, type InlineAddTaskHandle } from './inline-add-task'
 import { TaskItem } from './task-item'
 
 const TAB_STORAGE_KEY = 'logseq-pwa-bottom-tab'
@@ -69,7 +67,6 @@ export function TaskList({
   onRefetch,
 }: TaskListProps) {
   const [activeTab, setActiveTab] = useState<BottomTab>(readStoredTab)
-  const [modalOpen, setModalOpen] = useState(false)
   const [isDark, setIsDark] = useState(() => {
     try {
       return localStorage.getItem('theme') === 'dark'
@@ -78,14 +75,15 @@ export function TaskList({
     }
   })
   const [backend, setBackendState] = useState(getBackend)
-  const addTaskInputRef = useRef<HTMLInputElement>(null)
+  const addTaskRef = useRef<InlineAddTaskHandle>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const markDone = useMarkDone()
   const toggleToday = useToggleScheduleToday()
 
-  const openAddModal = () => {
-    flushSync(() => setModalOpen(true))
-    addTaskInputRef.current?.focus()
+  const focusAddTask = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    addTaskRef.current?.focus()
   }
 
   const handleToggleBackend = () => {
@@ -98,7 +96,7 @@ export function TaskList({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.has('add')) {
-      setModalOpen(true)
+      focusAddTask()
       params.delete('add')
       const newUrl = params.toString()
         ? `${window.location.pathname}?${params}`
@@ -147,7 +145,8 @@ export function TaskList({
     return groupTasks(filtered)
   }, [filtered, activeTab])
 
-  const defaultModalType: TaskType = activeTab === 'errands' ? 'Errand' : 'task'
+  const defaultAddType: Exclude<AddType, 'Inbox'> =
+    activeTab === 'errands' ? 'Errand' : 'task'
 
   const headerLabel =
     activeTab === 'today'
@@ -230,8 +229,13 @@ export function TaskList({
         </div>
       </div>
 
+      <InlineAddTask ref={addTaskRef} defaultType={defaultAddType} />
+
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
+      >
         {error && (
           <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
         )}
@@ -271,17 +275,7 @@ export function TaskList({
       <BottomTabBar
         active={activeTab}
         onChange={handleTabChange}
-        onAdd={openAddModal}
-      />
-
-      <AddTaskModal
-        open={modalOpen}
-        defaultType={defaultModalType}
-        onClose={() => {
-          setModalOpen(false)
-          if (isIosStandalone()) nudgeViewportStaggered()
-        }}
-        inputRef={addTaskInputRef}
+        onAdd={focusAddTask}
       />
     </div>
   )

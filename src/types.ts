@@ -1,5 +1,3 @@
-import type { RefObject } from 'react'
-
 export interface BaseLogseqBlock {
   fullTitle: string
   uuid: string
@@ -33,6 +31,8 @@ export type TaskStatus = 'Todo' | 'Done' | 'Doing' | 'Waiting'
 export type Priority = 'Urgent' | 'High' | 'Medium' | 'Low' | 'None'
 
 export type TaskType = 'task' | 'Errand'
+
+export type AddType = 'task' | 'Errand' | 'Inbox'
 
 // The UI-facing task model used throughout components
 export interface Task {
@@ -81,13 +81,6 @@ export type BottomTab = 'today' | 'tasks' | 'errands'
 export type Backend = 'cli' | 'http'
 
 export type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
-
-export interface AddTaskModalProps {
-  open: boolean
-  defaultType: TaskType
-  onClose: () => void
-  inputRef?: RefObject<HTMLInputElement | null>
-}
 
 export interface TaskListProps {
   tasks: Task[]

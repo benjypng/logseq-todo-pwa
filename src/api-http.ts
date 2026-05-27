@@ -129,7 +129,7 @@ export const addTaskToLogseq = async ({
   type,
 }: {
   title: string
-  type: 'task' | 'Errand'
+  type: 'task' | 'Errand' | 'Inbox'
 }) => {
   const todayDate = format(new Date(), 'MMM do, yyyy')
   const createdBlock = await api

@@ -119,17 +119,18 @@ Bun.serve({
         return ok({ ok: true })
       }
 
-      // POST /task  body: { title, type: "task"|"Errand", page }
+      // POST /task  body: { title, type: "task"|"Errand"|"Inbox", page }
       // Uses `upsert block` (not `upsert task`) so the block carries only
       // the requested tag — `upsert task` always attaches the Task tag,
       // which would double-tag Errands and surface them in the Tasks list.
       if (req.method === 'POST' && url.pathname === '/task') {
         const { title, type, page } = (await req.json()) as {
           title: string
-          type: 'task' | 'Errand'
+          type: 'task' | 'Errand' | 'Inbox'
           page: string
         }
-        const tag = type === 'Errand' ? 'Errand' : 'Task'
+        const tag =
+          type === 'Errand' ? 'Errand' : type === 'Inbox' ? 'Inbox' : 'Task'
         const created = (await runLogseq([
           'upsert',
           'block',
