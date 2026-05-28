@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
 
-const AUTH_KEY = 'auth-hash'
 const expectedHash = import.meta.env.VITE_AUTH_HASH as string
 
 async function hashString(input: string): Promise<string> {
@@ -12,15 +11,11 @@ async function hashString(input: string): Promise<string> {
 }
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () =>
-      localStorage.getItem(AUTH_KEY) === expectedHash && expectedHash !== '',
-  )
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const login = useCallback(async (input: string): Promise<boolean> => {
     const hash = await hashString(input)
-    if (hash === expectedHash) {
-      localStorage.setItem(AUTH_KEY, hash)
+    if (hash === expectedHash && expectedHash !== '') {
       setIsAuthenticated(true)
       return true
     }
