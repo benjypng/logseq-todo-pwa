@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+import { AuthGate } from './components/AuthGate'
 import { isIosStandalone, nudgeViewportStaggered } from './utils/ios-pwa'
 
 const queryClient = new QueryClient()
@@ -19,7 +20,9 @@ if (isIosStandalone()) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <AuthGate>
+        <App />
+      </AuthGate>
     </QueryClientProvider>
   </StrictMode>,
 )
