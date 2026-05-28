@@ -1,7 +1,7 @@
-import { Button, Center, PasswordInput, Stack } from '@mantine/core'
 import { type ReactNode, useState } from 'react'
 
 import { useAuth } from '../hooks/use-auth'
+import { Button } from './ui/button'
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { isAuthenticated, login } = useAuth()
@@ -23,22 +23,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <Center h="100vh">
-      <Stack w={300}>
-        <PasswordInput
-          label="Password"
+    <div className="flex h-screen items-center justify-center px-6">
+      <div className="flex w-full max-w-xs flex-col gap-3">
+        <label
+          htmlFor="auth-password"
+          className="text-sm font-medium text-foreground"
+        >
+          Password
+        </label>
+        <input
+          id="auth-password"
+          type="password"
+          autoFocus
           value={input}
-          onChange={(e) => setInput(e.currentTarget.value)}
+          onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSubmit()
           }}
-          error={error}
-          autoFocus
+          disabled={loading}
+          className="w-full rounded-xl border-none bg-secondary px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
         />
-        <Button onClick={handleSubmit} loading={loading}>
-          Login
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Checking…' : 'Login'}
         </Button>
-      </Stack>
-    </Center>
+      </div>
+    </div>
   )
 }
