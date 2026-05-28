@@ -41,10 +41,19 @@ Clone the repository and install dependencies:
     bun install
 
 ### 3. Environment Variables
-Create a `.env` file in the root directory and add your Logseq API token:
+Create a `.env` file in the root directory:
 
     VITE_LOGSEQ_API_TOKEN=your_secret_token_here
-    VITE_LOGSEQ_API_URL=[http://127.0.0.1:12315](http://127.0.0.1:12315)
+    VITE_LOGSEQ_API_URL=http://127.0.0.1:12315
+    VITE_AUTH_HASH=sha256_hex_of_your_password
+
+`VITE_AUTH_HASH` gates the app behind a password prompt on every load. It must be the **SHA-256 hex digest** of the password you want to use — not the password itself. Generate it with:
+
+    echo -n "yourpassword" | shasum -a 256 | awk '{print $1}'
+
+The `-n` is important — without it, the trailing newline gets hashed too. Paste the resulting 64-character hex string as `VITE_AUTH_HASH`.
+
+Note: `VITE_*` variables are **inlined at build time**, so you must `bun run build` (and restart the server) after changing them.
 
 ## 🏃‍♂️ Usage
 ### Running Locally
@@ -70,7 +79,7 @@ For easier access, configure your router or local DNS to map a friendly name to 
 * Example: Access via `http://logseq-tasks:5173` instead of the raw IP address.
 
 ## 📝 Query Logic
-By default, the app pulls blocks that match specific criteria (e.g., tagged with `#Task` or explicitly marked as `TODO`). You can modify the query logic in `src/api.ts` or `src/hooks/use-tasks.ts` to fit your workflow.
+By default, the app pulls blocks that match specific criteria (e.g., tagged with `#Task` or explicitly marked as `TODO`). The Datascript queries live in `src/constants.ts`; the React Query hooks that consume them live in `src/hooks/use-tasks.ts`.
 
 ## 📄 License
 [MIT](LICENSE)
