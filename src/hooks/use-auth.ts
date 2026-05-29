@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 
 const expectedHash = import.meta.env.VITE_AUTH_HASH as string
+const STORAGE_KEY = 'auth-hash'
 
 async function hashString(input: string): Promise<string> {
   const encoded = new TextEncoder().encode(input)
@@ -10,12 +11,18 @@ async function hashString(input: string): Promise<string> {
     .join('')
 }
 
+function hasValidStoredHash(): boolean {
+  if (expectedHash === '') return false
+  return localStorage.getItem(STORAGE_KEY) === expectedHash
+}
+
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(hasValidStoredHash)
 
   const login = useCallback(async (input: string): Promise<boolean> => {
     const hash = await hashString(input)
     if (hash === expectedHash && expectedHash !== '') {
+      localStorage.setItem(STORAGE_KEY, hash)
       setIsAuthenticated(true)
       return true
     }
