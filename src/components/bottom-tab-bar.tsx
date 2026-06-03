@@ -12,8 +12,8 @@ const TABS: { value: BottomTab; label: string; Icon: typeof Sun }[] = [
 export function BottomTabBar({ active, onChange, onAdd }: BottomTabBarProps) {
   return (
     <nav
-      className="fixed left-3 right-3 z-40 rounded-2xl border border-border bg-card/95 shadow-lg shadow-black/10 backdrop-blur-md"
-      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Primary"
     >
       <div className="mx-auto flex max-w-md items-stretch justify-around px-1 py-1">

@@ -232,10 +232,7 @@ export function TaskList({
       <InlineAddTask ref={addTaskRef} defaultType={defaultAddType} />
 
       {/* Task list */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-3">
         {error && (
           <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
         )}
