@@ -23,6 +23,9 @@
   --color-today: #e8a33d;
   --color-doing: #b8862c;
   --color-overdue: #c2410c;
+  --color-sync-ok: #16a34a;
+  --color-sync-pending: #ea8c1c;
+  --color-sync-error: #c2410c;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -99,5 +102,8 @@
     --color-today: #e8a33d;
     --color-doing: #d4a04a;
     --color-overdue: #fb923c;
+    --color-sync-ok: #22c55e;
+    --color-sync-pending: #f59e0b;
+    --color-sync-error: #fb923c;
   }
 }

@@ -8,6 +8,7 @@ import { cn } from '../lib/utils'
 import type { AddType, BottomTab, Task, TaskListProps } from '../types'
 import { BottomTabBar } from './bottom-tab-bar'
 import { InlineAddTask, type InlineAddTaskHandle } from './inline-add-task'
+import { SyncDot } from './sync-dot'
 import { TaskItem } from './task-item'
 
 const TAB_STORAGE_KEY = 'logseq-pwa-bottom-tab'
@@ -189,6 +190,7 @@ export function TaskList({
             )}
           </div>
           <div className="flex items-center gap-1">
+            <SyncDot enabled={backend === 'cli'} />
             <button
               type="button"
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"

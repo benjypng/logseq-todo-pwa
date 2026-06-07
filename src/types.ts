@@ -80,6 +80,24 @@ export type BottomTab = 'today' | 'tasks' | 'errands'
 
 export type Backend = 'cli' | 'http'
 
+export type SyncState = 'synced' | 'pending' | 'error'
+
+export interface SyncStatusDetail {
+  ['ws-state']?: string
+  ['last-error']?: unknown
+  ['pending-local']?: number
+  ['pending-server']?: number
+  ['pending-asset']?: number
+  ['local-tx']?: number
+  ['remote-tx']?: number
+}
+
+export interface SyncStatus {
+  state: SyncState
+  detail: SyncStatusDetail | null
+  error?: string
+}
+
 export type AppState = { mode: 'list' } | { mode: 'focus'; task: Task }
 
 export interface TaskListProps {

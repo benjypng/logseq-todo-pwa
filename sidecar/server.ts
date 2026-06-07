@@ -72,6 +72,51 @@ Bun.serve({
         return ok({ name: GRAPH })
       }
 
+      // GET /sync/status -> { state: 'synced'|'pending'|'error', detail, error? }
+      // Derives a traffic-light verdict from `logseq sync status`:
+      //   error   - CLI failed, status != ok, last-error set, or ws not open
+      //   pending - any pending-* counter > 0, or local-tx != remote-tx
+      //   synced  - connected, no errors, nothing pending, txs converged
+      if (req.method === 'GET' && url.pathname === '/sync/status') {
+        try {
+          const raw = (await runLogseq(['sync', 'status'])) as {
+            status?: string
+            data?: {
+              'ws-state'?: string
+              'last-error'?: unknown
+              'pending-local'?: number
+              'pending-server'?: number
+              'pending-asset'?: number
+              'local-tx'?: number
+              'remote-tx'?: number
+            }
+          } | null
+          const d = raw?.data
+          let state: 'synced' | 'pending' | 'error'
+          if (
+            !d ||
+            raw?.status !== 'ok' ||
+            d['last-error'] != null ||
+            d['ws-state'] !== 'open'
+          ) {
+            state = 'error'
+          } else if (
+            (d['pending-local'] ?? 0) > 0 ||
+            (d['pending-server'] ?? 0) > 0 ||
+            (d['pending-asset'] ?? 0) > 0 ||
+            d['local-tx'] !== d['remote-tx']
+          ) {
+            state = 'pending'
+          } else {
+            state = 'synced'
+          }
+          return ok({ state, detail: d ?? null })
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err)
+          return ok({ state: 'error', detail: null, error: message })
+        }
+      }
+
       // POST /query  body: { edn: "[:find ... :where ...]" }
       if (req.method === 'POST' && url.pathname === '/query') {
         const { edn } = (await req.json()) as { edn: string }
