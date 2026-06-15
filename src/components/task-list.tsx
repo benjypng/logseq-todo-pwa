@@ -1,13 +1,13 @@
-import { Moon, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
+import { Moon, Plus, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { getBackend, setBackend } from '../backend'
 import { useMarkDone, useToggleScheduleToday } from '../hooks/use-tasks'
 import { isToday } from '../lib/date'
 import { cn } from '../lib/utils'
-import type { AddType, BottomTab, Task, TaskListProps } from '../types'
+import type { BottomTab, Task, TaskListProps } from '../types'
+import { AddComposer } from './add-composer'
 import { BottomTabBar } from './bottom-tab-bar'
-import { InlineAddTask, type InlineAddTaskHandle } from './inline-add-task'
 import { SyncDot } from './sync-dot'
 import { TaskItem } from './task-item'
 
@@ -53,8 +53,8 @@ function groupTasks(tasks: Task[]): Section[] {
   )
 
   const out: Section[] = []
-  if (overdue.length) out.push({ label: 'Overdue', tasks: overdue })
   if (today.length) out.push({ label: 'Today', tasks: today })
+  if (overdue.length) out.push({ label: 'Overdue', tasks: overdue })
   if (upcoming.length) out.push({ label: 'Upcoming', tasks: upcoming })
   if (unscheduled.length) out.push({ label: 'No date', tasks: unscheduled })
   return out
@@ -76,16 +76,17 @@ export function TaskList({
     }
   })
   const [backend, setBackendState] = useState(getBackend)
-  const addTaskRef = useRef<InlineAddTaskHandle>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [composerOpen, setComposerOpen] = useState(false)
+
+  const [newUuids, setNewUuids] = useState<Set<string>>(() => new Set())
+  const prevUuids = useRef<Set<string> | null>(null)
+  const expectNewUntil = useRef(0)
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const markDone = useMarkDone()
   const toggleToday = useToggleScheduleToday()
 
-  const focusAddTask = () => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-    addTaskRef.current?.focus()
-  }
+  const openComposer = () => setComposerOpen(true)
 
   const handleToggleBackend = () => {
     const next = backend === 'cli' ? 'http' : 'cli'
@@ -97,7 +98,7 @@ export function TaskList({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.has('add')) {
-      focusAddTask()
+      setComposerOpen(true)
       params.delete('add')
       const newUrl = params.toString()
         ? `${window.location.pathname}?${params}`
@@ -114,6 +115,33 @@ export function TaskList({
       // ignore
     }
   }, [isDark])
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+
+  useEffect(() => {
+    const current = new Set(tasks.map((t) => t.uuid))
+    if (prevUuids.current === null) {
+      prevUuids.current = current
+      return
+    }
+    const added = [...current].filter((id) => !prevUuids.current?.has(id))
+    prevUuids.current = current
+    if (added.length && Date.now() < expectNewUntil.current) {
+      setNewUuids((prev) => new Set([...prev, ...added]))
+      for (const id of added) {
+        timers.current.push(
+          setTimeout(() => {
+            setNewUuids((prev) => {
+              if (!prev.has(id)) return prev
+              const next = new Set(prev)
+              next.delete(id)
+              return next
+            })
+          }, 900),
+        )
+      }
+    }
+  }, [tasks])
 
   const handleTabChange = (tab: BottomTab) => {
     setActiveTab(tab)
@@ -140,14 +168,10 @@ export function TaskList({
 
   const sections = useMemo(() => {
     if (activeTab === 'today') {
-      // Flat list — already filtered to today/overdue
       return [{ label: '', tasks: filtered }]
     }
     return groupTasks(filtered)
   }, [filtered, activeTab])
-
-  const defaultAddType: Exclude<AddType, 'Inbox'> =
-    activeTab === 'errands' ? 'Errand' : 'task'
 
   const headerLabel =
     activeTab === 'today'
@@ -155,16 +179,6 @@ export function TaskList({
       : activeTab === 'tasks'
         ? 'Tasks'
         : 'Errands'
-
-  const todayCount = useMemo(
-    () =>
-      tasks.filter(
-        (t) =>
-          t.isScheduledToday ||
-          (t.scheduledDate && t.scheduledDate.getTime() < Date.now()),
-      ).length,
-    [tasks],
-  )
 
   const handleComplete = (uuid: string) => {
     markDone.mutate(uuid)
@@ -174,72 +188,58 @@ export function TaskList({
     toggleToday.mutate({ uuid, clear })
   }
 
+  const iconBtn =
+    'flex items-center text-icon transition-colors hover:text-accent active:text-accent'
+
   return (
-    <div className="flex h-screen flex-col bg-background">
-      {/* Header */}
-      <div className="px-5 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between pb-2">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-[28px] font-bold tracking-tight text-foreground">
-              {headerLabel}
-            </h1>
-            {activeTab === 'today' && todayCount > 0 && (
-              <span className="text-[15px] font-medium text-muted-foreground">
-                {todayCount}
-              </span>
+    <div className="relative flex h-screen flex-col overflow-hidden bg-background">
+      <div className="flex items-center gap-[14px] px-[30px] pt-[calc(20px+env(safe-area-inset-top))] pb-[6px]">
+        <h1 className="font-serif text-[50px] font-normal leading-[0.9] tracking-[0.01em] text-foreground">
+          {headerLabel}
+        </h1>
+        <div className="ml-auto flex items-center gap-5">
+          <SyncDot enabled={backend === 'cli'} />
+          <button
+            type="button"
+            className={cn(iconBtn, isLoading && 'animate-spin')}
+            onClick={onRefetch}
+            disabled={isLoading}
+            aria-label="Refresh"
+          >
+            <RefreshCw className="h-[21px] w-[21px]" strokeWidth={1.8} />
+          </button>
+          <button
+            type="button"
+            className={iconBtn}
+            onClick={handleToggleBackend}
+            title={`Backend: ${backend === 'cli' ? 'CLI (sidecar)' : 'HTTP API'} — click to switch`}
+            aria-label="Toggle backend"
+          >
+            {backend === 'cli' ? (
+              <Terminal className="h-[21px] w-[21px]" strokeWidth={1.8} />
+            ) : (
+              <Server className="h-[21px] w-[21px]" strokeWidth={1.8} />
             )}
-          </div>
-          <div className="flex items-center gap-1">
-            <SyncDot enabled={backend === 'cli'} />
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
-              onClick={onRefetch}
-              disabled={isLoading}
-              aria-label="Refresh"
-            >
-              <RefreshCw
-                className={cn('h-[18px] w-[18px]', isLoading && 'animate-spin')}
-              />
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
-              onClick={handleToggleBackend}
-              title={`Backend: ${backend === 'cli' ? 'CLI (sidecar)' : 'HTTP API'} — click to switch`}
-              aria-label="Toggle backend"
-            >
-              {backend === 'cli' ? (
-                <Terminal className="h-[18px] w-[18px]" />
-              ) : (
-                <Server className="h-[18px] w-[18px]" />
-              )}
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground active:bg-secondary"
-              onClick={() => setIsDark((d) => !d)}
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? (
-                <Sun className="h-[18px] w-[18px]" />
-              ) : (
-                <Moon className="h-[18px] w-[18px]" />
-              )}
-            </button>
-          </div>
+          </button>
+          <button
+            type="button"
+            className={iconBtn}
+            onClick={() => setIsDark((d) => !d)}
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? (
+              <Sun className="h-[21px] w-[21px]" strokeWidth={1.8} />
+            ) : (
+              <Moon className="h-[21px] w-[21px]" strokeWidth={1.8} />
+            )}
+          </button>
         </div>
       </div>
 
-      <InlineAddTask ref={addTaskRef} defaultType={defaultAddType} />
-
-      {/* Task list */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-3">
-        {error && (
-          <p className="px-5 py-3 text-[13px] text-destructive">{error}</p>
-        )}
+      <div className="flex-1 overflow-y-auto px-[30px] pt-[2px] pb-[22px]">
+        {error && <p className="py-3 text-[13px] text-destructive">{error}</p>}
         {!isLoading && filtered.length === 0 && !error && (
-          <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-[15px] text-muted-foreground">
               {activeTab === 'today'
                 ? 'Nothing scheduled for today'
@@ -252,29 +252,56 @@ export function TaskList({
         {sections.map((section, i) => (
           <div key={section.label || `s-${i}`}>
             {section.label && (
-              <div className="px-5 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <div
+                className={cn(
+                  'text-[13px] font-bold uppercase tracking-[0.1em] text-muted-foreground',
+                  i === 0 ? 'pt-[6px] pb-2' : 'pt-[26px] pb-2',
+                )}
+              >
                 {section.label}
               </div>
             )}
-            <div className="divide-y divide-border/60">
-              {section.tasks.map((task) => (
-                <TaskItem
-                  key={task.uuid}
-                  task={task}
-                  onComplete={handleComplete}
-                  onToggleToday={handleToggleToday}
-                  onEnterFocus={onEnterFocus}
-                />
-              ))}
-            </div>
+            {section.tasks.map((task) => (
+              <TaskItem
+                key={task.uuid}
+                task={task}
+                onComplete={handleComplete}
+                onToggleToday={handleToggleToday}
+                onEnterFocus={onEnterFocus}
+                isNew={newUuids.has(task.uuid)}
+              />
+            ))}
           </div>
         ))}
       </div>
 
+      {!composerOpen && (
+        <button
+          type="button"
+          onClick={openComposer}
+          aria-label="Add item"
+          className="absolute right-6 bottom-[calc(110px+env(safe-area-inset-bottom))] flex h-[62px] w-[62px] items-center justify-center rounded-full bg-accent text-white transition-[filter] hover:brightness-[1.06]"
+          style={{
+            boxShadow:
+              '0 12px 28px rgba(191,125,42,.42), 0 2px 6px rgba(0,0,0,.12)',
+          }}
+        >
+          <Plus className="h-[30px] w-[30px]" strokeWidth={2.3} />
+        </button>
+      )}
+
+      <AddComposer
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        onSubmitted={() => {
+          expectNewUntil.current = Date.now() + 6000
+        }}
+      />
+
       <BottomTabBar
         active={activeTab}
         onChange={handleTabChange}
-        onAdd={focusAddTask}
+        onAdd={openComposer}
       />
     </div>
   )

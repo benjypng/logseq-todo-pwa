@@ -1,7 +1,7 @@
-import { Calendar, CalendarOff, Flag, Sun } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { CalendarOff, Flag, Sun } from 'lucide-react'
+import { Fragment, type ReactNode, useRef, useState } from 'react'
 
-import { formatScheduledDate, isToday } from '../lib/date'
+import { formatAnnadoDate, isToday } from '../lib/date'
 import { cn } from '../lib/utils'
 import type { TaskItemProps } from '../types'
 import { Checkbox } from './ui/checkbox'
@@ -10,11 +10,27 @@ const SWIPE_THRESHOLD = 80
 const MAX_SWIPE = 120
 const AXIS_LOCK_PX = 6
 
+const WIKI_LINK_RE = /(\[\[[^\]]+\]\])/g
+
+function renderTitle(text: string): ReactNode {
+  const parts = text.split(WIKI_LINK_RE).filter(Boolean)
+  return parts.map((part, i) =>
+    part.startsWith('[[') && part.endsWith(']]') ? (
+      <span key={i} className="font-semibold text-ref">
+        {part}
+      </span>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    ),
+  )
+}
+
 export function TaskItem({
   task,
   onComplete,
   onToggleToday,
   onEnterFocus,
+  isNew,
 }: TaskItemProps) {
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -88,18 +104,25 @@ export function TaskItem({
     task.deadline &&
     task.deadline.getTime() < Date.now() &&
     !isToday(task.deadline)
-  const showDeadlineToday = task.deadline && isToday(task.deadline)
+  const dateToShow = task.scheduledDate ?? task.deadline
+  const showSwipeReveal = dragX < 0
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Swipe-left reveal: Today action (toggle) */}
+    <div
+      className="relative overflow-hidden"
+      style={
+        isNew
+          ? { animation: 'annadoIn .5s cubic-bezier(.22,1,.36,1) both' }
+          : undefined
+      }
+    >
       <div
         className={cn(
-          'absolute inset-y-0 right-0 flex w-[120px] items-center justify-end pr-5',
+          'absolute inset-y-0 right-0 flex w-[120px] items-center justify-end pr-[30px] transition-opacity',
           task.isScheduledToday
             ? 'bg-muted text-foreground'
             : 'bg-accent text-accent-foreground',
-          dragX <= -SWIPE_THRESHOLD ? 'opacity-100' : 'opacity-80',
+          showSwipeReveal ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden
       >
@@ -120,18 +143,19 @@ export function TaskItem({
 
       <div
         ref={rowRef}
-        className="relative flex select-none items-start gap-3 bg-background px-5 py-3"
+        className="relative flex select-none items-start gap-[17px] border-b border-divider bg-background px-[30px] py-[21px]"
         style={{
           transform: `translateX(${dragX}px)`,
           transition: isDragging ? 'none' : 'transform 220ms ease',
           touchAction: 'pan-y',
+          ...(isNew ? { animation: 'annadoFlash 1.2s ease .15s both' } : null),
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
-        <div className="pt-0.5" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="pt-[1px]" onPointerDown={(e) => e.stopPropagation()}>
           <Checkbox
             checked={false}
             onCheckedChange={() => onComplete(task.uuid)}
@@ -140,45 +164,32 @@ export function TaskItem({
         </div>
         <button
           type="button"
-          className="flex min-w-0 flex-1 flex-col gap-0.5 text-left hover:opacity-100"
+          className="flex min-w-0 flex-1 flex-col gap-2 pt-[2px] text-left"
           onClick={handleRowClick}
         >
-          <span className="text-[15px] leading-snug text-foreground">
-            {task.displayText}
+          <span className="text-[18.5px] font-medium leading-[1.4] text-foreground">
+            {renderTitle(task.displayText)}
           </span>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            {task.status === 'Doing' && (
-              <span className="text-[12px] font-medium text-doing">
-                In Progress
-              </span>
-            )}
-            {task.isScheduledToday && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-1.5 py-0.5 text-[11px] font-semibold text-accent">
-                <Calendar className="h-3 w-3" />
-                Today
-              </span>
-            )}
-            {task.deadline && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1 text-[12px] font-medium',
-                  deadlineOverdue
-                    ? 'text-overdue'
-                    : showDeadlineToday
-                      ? 'text-accent'
-                      : 'text-muted-foreground',
-                )}
-              >
-                <Flag className="h-3 w-3" />
-                {formatScheduledDate(task.deadline)}
-              </span>
-            )}
-            {task.pageName && task.pageName !== 'Unknown' && (
-              <span className="truncate text-[12px] text-muted-foreground">
-                {task.pageName}
-              </span>
-            )}
-          </div>
+          {(dateToShow || task.status === 'Doing') && (
+            <span className="flex flex-wrap items-center gap-x-2 text-[14.5px] font-[450]">
+              {task.status === 'Doing' && (
+                <span className="text-doing">In progress</span>
+              )}
+              {dateToShow && (
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1',
+                    deadlineOverdue ? 'text-overdue' : 'text-faint',
+                  )}
+                >
+                  {task.deadline && !task.scheduledDate && (
+                    <Flag className="h-3.5 w-3.5" />
+                  )}
+                  {formatAnnadoDate(dateToShow)}
+                </span>
+              )}
+            </span>
+          )}
         </button>
       </div>
     </div>

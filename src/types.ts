@@ -118,6 +118,7 @@ export interface TaskItemProps {
   onComplete: (uuid: string) => void
   onToggleToday: (uuid: string, clear: boolean) => void
   onEnterFocus: (uuid: string) => void
+  isNew?: boolean
 }
 
 export interface BottomTabBarProps {

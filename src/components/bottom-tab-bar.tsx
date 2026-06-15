@@ -12,11 +12,11 @@ const TABS: { value: BottomTab; label: string; Icon: typeof Sun }[] = [
 export function BottomTabBar({ active, onChange, onAdd }: BottomTabBarProps) {
   return (
     <nav
-      className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="shrink-0 border-t border-divider bg-navbar px-4 pt-4 pb-[26px]"
+      style={{ paddingBottom: 'calc(26px + env(safe-area-inset-bottom))' }}
       aria-label="Primary"
     >
-      <div className="mx-auto flex max-w-md items-stretch justify-around px-1 py-1">
+      <div className="mx-auto flex max-w-md items-stretch">
         {TABS.map((tab) => {
           const isActive = active === tab.value
           const { Icon, label } = tab
@@ -27,11 +27,16 @@ export function BottomTabBar({ active, onChange, onAdd }: BottomTabBarProps) {
               onClick={() => onChange(tab.value)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] font-medium transition-colors',
-                isActive ? 'text-accent' : 'text-muted-foreground',
+                'flex flex-1 flex-col items-center gap-[7px] text-[12.5px]',
+                isActive
+                  ? 'font-[650] text-accent'
+                  : 'font-medium text-muted-foreground',
               )}
             >
-              <Icon className="h-5 w-5" strokeWidth={isActive ? 2.4 : 1.8} />
+              <Icon
+                className="h-[23px] w-[23px]"
+                strokeWidth={isActive ? 2.2 : 1.8}
+              />
               <span>{label}</span>
             </button>
           )
@@ -39,10 +44,10 @@ export function BottomTabBar({ active, onChange, onAdd }: BottomTabBarProps) {
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Add task"
-          className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[11px] font-medium text-primary"
+          aria-label="Add item"
+          className="flex flex-1 flex-col items-center gap-[7px] text-[12.5px] font-[650] text-accent"
         >
-          <Plus className="h-5 w-5" strokeWidth={2.4} />
+          <Plus className="h-[23px] w-[23px]" strokeWidth={2.1} />
           <span>Add</span>
         </button>
       </div>

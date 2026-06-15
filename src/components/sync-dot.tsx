@@ -8,6 +8,12 @@ const DOT_COLOR: Record<SyncState, string> = {
   error: 'bg-sync-error',
 }
 
+const DOT_RING: Record<SyncState, string> = {
+  synced: '0 0 0 3px rgba(61,187,107,.16)',
+  pending: '0 0 0 3px rgba(234,140,28,.16)',
+  error: '0 0 0 3px rgba(194,65,12,.16)',
+}
+
 const LABEL: Record<SyncState, string> = {
   synced: 'In sync',
   pending: 'Pending changes',
@@ -43,16 +49,17 @@ export function SyncDot({ enabled }: { enabled: boolean }) {
 
   return (
     <span
-      className="flex h-9 w-9 items-center justify-center"
+      className="flex items-center justify-center"
       title={tooltip}
       aria-label={tooltip}
     >
       <span
         className={cn(
-          'h-2.5 w-2.5 rounded-full',
+          'h-[11px] w-[11px] rounded-full',
           DOT_COLOR[state],
           isFetching && 'animate-pulse',
         )}
+        style={{ boxShadow: DOT_RING[state] }}
       />
     </span>
   )
