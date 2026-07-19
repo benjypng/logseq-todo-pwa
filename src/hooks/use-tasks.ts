@@ -1,15 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { startOfDay } from 'date-fns'
+import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
+import { useCallback, useMemo } from 'react'
 
-import {
-  addTaskToLogseq,
-  getTasksFromLogseq,
-  markTaskAsDone,
-  moveTaskToDate,
-  setTaskDeadline,
-} from '../api'
+import { getTasksFromLogseq } from '../api'
 import { isToday } from '../lib/date'
-import type { AddType, LogseqTask, Task, TaskType } from '../types'
+import { applyOutbox } from '../lib/merge'
+import type { AddType, LogseqTask, Task } from '../types'
+import { useOutbox } from './use-outbox'
 
 function mapLogseqTaskToTask(logseqTask: LogseqTask): Task | null {
   if (logseqTask.status !== 'Todo' && logseqTask.status !== 'Doing') {
@@ -41,6 +38,7 @@ function mapLogseqTaskToTask(logseqTask: LogseqTask): Task | null {
 }
 
 export function useTasks() {
+  const { entries } = useOutbox()
   const query = useQuery({
     queryKey: ['tasks'],
     queryFn: getTasksFromLogseq,
@@ -49,6 +47,7 @@ export function useTasks() {
     refetchOnMount: true,
     refetchInterval: 2000,
     staleTime: 0,
+    retry: false,
     select: (data) => {
       const tasks: Task[] = []
       for (const logseqTask of data) {
@@ -59,8 +58,13 @@ export function useTasks() {
     },
   })
 
+  const tasks = useMemo(
+    () => applyOutbox(query.data ?? [], entries),
+    [query.data, entries],
+  )
+
   return {
-    tasks: query.data ?? [],
+    tasks,
     isLoading: query.isLoading,
     error: query.error ? String(query.error) : null,
     refetch: query.refetch,
@@ -68,67 +72,45 @@ export function useTasks() {
 }
 
 export function useAddTask() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ title, type }: { title: string; type: AddType }) =>
-      addTaskToLogseq({ title, type }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-  })
+  const { enqueue } = useOutbox()
+  return useCallback(
+    (title: string, type: AddType) =>
+      enqueue({ kind: 'add-task', title, type }),
+    [enqueue],
+  )
 }
 
-export function useMarkDone() {
-  const queryClient = useQueryClient()
-  return useMutation<
-    void,
-    Error,
-    string,
-    { previous: LogseqTask[] | undefined }
-  >({
-    mutationFn: async (uuid: string) => {
-      await markTaskAsDone(uuid)
-    },
-    onMutate: async (uuid) => {
-      await queryClient.cancelQueries({ queryKey: ['tasks'] })
-      const previous = queryClient.getQueryData<LogseqTask[]>(['tasks'])
-      queryClient.setQueryData<LogseqTask[]>(['tasks'], (old) =>
-        old ? old.filter((t) => t.uuid !== uuid) : old,
-      )
-      return { previous }
-    },
-    onError: (_err, _uuid, ctx) => {
-      if (ctx?.previous) {
-        queryClient.setQueryData(['tasks'], ctx.previous)
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-  })
+export function useSetStatus() {
+  const { enqueue } = useOutbox()
+  return useCallback(
+    (uuid: string, status: 'Todo' | 'Doing' | 'Done') =>
+      enqueue({ kind: 'set-status', uuid, status }),
+    [enqueue],
+  )
 }
 
 export function useToggleScheduleToday() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ uuid, clear }: { uuid: string; clear: boolean }) =>
-      moveTaskToDate({
+  const { enqueue } = useOutbox()
+  return useCallback(
+    (uuid: string, clear: boolean) =>
+      enqueue({
+        kind: 'set-scheduled',
         uuid,
-        date: clear ? null : startOfDay(new Date()),
+        scheduled: clear ? null : format(new Date(), 'yyyy-MM-dd'),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-  })
+    [enqueue],
+  )
 }
 
 export function useSetDeadline() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ uuid, date }: { uuid: string; date: Date | null }) =>
-      setTaskDeadline({ uuid, date }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-  })
+  const { enqueue } = useOutbox()
+  return useCallback(
+    (uuid: string, date: Date | null) =>
+      enqueue({
+        kind: 'set-deadline',
+        uuid,
+        deadline: date === null ? null : format(date, 'yyyy-MM-dd'),
+      }),
+    [enqueue],
+  )
 }

@@ -1,8 +1,7 @@
-import { Moon, Plus, RefreshCw, Server, Sun, Terminal } from 'lucide-react'
+import { Moon, Plus, RefreshCw, Sun } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { getBackend, setBackend } from '../backend'
-import { useMarkDone, useToggleScheduleToday } from '../hooks/use-tasks'
+import { useSetStatus, useToggleScheduleToday } from '../hooks/use-tasks'
 import { isToday } from '../lib/date'
 import { cn } from '../lib/utils'
 import type { BottomTab, Task, TaskListProps } from '../types'
@@ -75,7 +74,6 @@ export function TaskList({
       return false
     }
   })
-  const [backend, setBackendState] = useState(getBackend)
   const [composerOpen, setComposerOpen] = useState(false)
 
   const [newUuids, setNewUuids] = useState<Set<string>>(() => new Set())
@@ -83,17 +81,10 @@ export function TaskList({
   const expectNewUntil = useRef(0)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
 
-  const markDone = useMarkDone()
+  const setStatus = useSetStatus()
   const toggleToday = useToggleScheduleToday()
 
   const openComposer = () => setComposerOpen(true)
-
-  const handleToggleBackend = () => {
-    const next = backend === 'cli' ? 'http' : 'cli'
-    setBackend(next)
-    setBackendState(next)
-    window.location.reload()
-  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -181,11 +172,11 @@ export function TaskList({
         : 'Errands'
 
   const handleComplete = (uuid: string) => {
-    markDone.mutate(uuid)
+    setStatus(uuid, 'Done')
   }
 
   const handleToggleToday = (uuid: string, clear: boolean) => {
-    toggleToday.mutate({ uuid, clear })
+    toggleToday(uuid, clear)
   }
 
   const iconBtn =
@@ -198,7 +189,7 @@ export function TaskList({
           {headerLabel}
         </h1>
         <div className="ml-auto flex items-center gap-5">
-          <SyncDot enabled={backend === 'cli'} />
+          <SyncDot enabled />
           <button
             type="button"
             className={cn(iconBtn, isLoading && 'animate-spin')}
@@ -207,19 +198,6 @@ export function TaskList({
             aria-label="Refresh"
           >
             <RefreshCw className="h-[21px] w-[21px]" strokeWidth={1.8} />
-          </button>
-          <button
-            type="button"
-            className={iconBtn}
-            onClick={handleToggleBackend}
-            title={`Backend: ${backend === 'cli' ? 'CLI (sidecar)' : 'HTTP API'} — click to switch`}
-            aria-label="Toggle backend"
-          >
-            {backend === 'cli' ? (
-              <Terminal className="h-[21px] w-[21px]" strokeWidth={1.8} />
-            ) : (
-              <Server className="h-[21px] w-[21px]" strokeWidth={1.8} />
-            )}
           </button>
           <button
             type="button"

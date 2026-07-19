@@ -44,6 +44,7 @@ export interface Task {
   isScheduledToday: boolean
   pageName: string
   taskType: TaskType
+  pending?: boolean
 }
 
 export interface MoveTaskProps {
@@ -77,8 +78,6 @@ export interface SetDeadlineProps {
 }
 
 export type BottomTab = 'today' | 'tasks' | 'errands'
-
-export type Backend = 'cli' | 'http'
 
 export type SyncState = 'synced' | 'pending' | 'error'
 

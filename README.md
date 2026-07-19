@@ -2,7 +2,9 @@
 
 A lightweight, distraction-free Progressive Web App (PWA) designed to manage Logseq tasks on the go.
 
-This project connects directly to a running Logseq instance via the HTTP API, allowing you to view and complete tasks without opening the full Logseq mobile app. It features a "Focus Mode" to help you concentrate on one task at a time.
+This project talks to your Logseq graph through a small local sidecar server that wraps the `logseq` CLI, allowing you to view and complete tasks without opening the full Logseq app. It features a "Focus Mode" to help you concentrate on one task at a time.
+
+The app is **offline-first**: the last-fetched task list is cached in IndexedDB and renders even with no connection, and any changes you make offline (adding tasks, completing them, scheduling) are queued locally and replayed automatically when the sidecar is reachable again. Queued changes show as a count next to the sync dot.
 
 ![](./demo.gif)
 
@@ -25,11 +27,8 @@ Before running the app, ensure you have the following setup:
 3.  **Node.js** or **Bun** installed on the machine hosting the PWA.
 
 ## ⚙️ Configuration
-### 1. Configure Logseq API
-1.  Open Logseq on your host machine.
-2.  Go to **Settings** > **Features** and enable the **HTTP API Server**.
-3.  Set a secure **Authorization Token**.
-4.  Note the **API Server Host** and **Port** (default is usually `127.0.0.1:12315`).
+### 1. Install the Logseq CLI
+The sidecar shells out to the `logseq` CLI, so it must be installed and able to open your DB-version graph on the host machine.
 
 ### 2. Setup the PWA
 Clone the repository and install dependencies:
@@ -41,28 +40,20 @@ Clone the repository and install dependencies:
     bun install
 
 ### 3. Environment Variables
-Create a `.env` file in the root directory:
+Create a `.env.development` file in the root directory (see `.env.example`):
 
-    VITE_LOGSEQ_API_TOKEN=your_secret_token_here
-    VITE_LOGSEQ_API_URL=http://127.0.0.1:12315
-    VITE_AUTH_HASH=sha256_hex_of_your_password
-
-`VITE_AUTH_HASH` gates the app behind a password prompt on every load. It must be the **SHA-256 hex digest** of the password you want to use — not the password itself. Generate it with:
-
-    echo -n "yourpassword" | shasum -a 256 | awk '{print $1}'
-
-The `-n` is important — without it, the trailing newline gets hashed too. Paste the resulting 64-character hex string as `VITE_AUTH_HASH`.
-
-Note: `VITE_*` variables are **inlined at build time**, so you must `bun run build` (and restart the server) after changing them.
+    LOGSEQ_GRAPH=your_graph_name
+    ALLOWED_HOSTS=
 
 ## 🏃‍♂️ Usage
 ### Running Locally
-Run the development server with the host flag to expose it to your local network/VPN:
+Run the sidecar and dev server together:
 
-    # Using npm
-    npm run dev -- --host
+    bun run start
 
-    # Using Bun
+Or separately, with the host flag to expose the dev server to your local network/VPN:
+
+    bun run sidecar
     bun run dev -- --host
 
 Ensure the app is accessible by visiting `http://<YOUR_SERVER_IP>:5173` from another device on the same network.

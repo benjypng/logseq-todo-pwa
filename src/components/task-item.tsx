@@ -48,7 +48,10 @@ export function TaskItem({
     axisLocked.current = null
   }
 
+  const pending = !!task.pending
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pending) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
     startX.current = e.clientX
     startY.current = e.clientY
@@ -93,6 +96,7 @@ export function TaskItem({
   }
 
   const handleRowClick = () => {
+    if (pending) return
     if (didSwipe.current) {
       didSwipe.current = false
       return
@@ -143,7 +147,10 @@ export function TaskItem({
 
       <div
         ref={rowRef}
-        className="relative flex select-none items-start gap-[17px] border-b border-divider bg-background px-[30px] py-[21px]"
+        className={cn(
+          'relative flex select-none items-start gap-[17px] border-b border-divider bg-background px-[30px] py-[21px]',
+          pending && 'opacity-55',
+        )}
         style={{
           transform: `translateX(${dragX}px)`,
           transition: isDragging ? 'none' : 'transform 220ms ease',
@@ -158,6 +165,7 @@ export function TaskItem({
         <div className="pt-[1px]" onPointerDown={(e) => e.stopPropagation()}>
           <Checkbox
             checked={false}
+            disabled={pending}
             onCheckedChange={() => onComplete(task.uuid)}
             aria-label="Mark task done"
           />
@@ -170,8 +178,9 @@ export function TaskItem({
           <span className="text-[18.5px] font-medium leading-[1.4] text-foreground">
             {renderTitle(task.displayText)}
           </span>
-          {(dateToShow || task.status === 'Doing') && (
+          {(dateToShow || task.status === 'Doing' || pending) && (
             <span className="flex flex-wrap items-center gap-x-2 text-[14.5px] font-[450]">
+              {pending && <span className="text-faint">Queued</span>}
               {task.status === 'Doing' && (
                 <span className="text-doing">In progress</span>
               )}

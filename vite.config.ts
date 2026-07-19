@@ -39,12 +39,10 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          navigateFallbackDenylist: [/^\/logseq-api/, /^\/logseq-cli/],
+          navigateFallbackDenylist: [/^\/logseq-cli/],
           runtimeCaching: [
             {
-              urlPattern: ({ url }) =>
-                url.pathname.startsWith('/logseq-api') ||
-                url.pathname.startsWith('/logseq-cli'),
+              urlPattern: ({ url }) => url.pathname.startsWith('/logseq-cli'),
               handler: 'NetworkOnly',
             },
           ],
@@ -60,12 +58,6 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/logseq-cli/, ''),
-        },
-        '/logseq-api': {
-          target: 'http://127.0.0.1:12315',
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/logseq-api/, ''),
         },
       },
     },

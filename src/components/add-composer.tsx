@@ -21,7 +21,7 @@ const DESTINATIONS: { type: AddType; label: string; Icon: typeof ListTodo }[] =
 export function AddComposer({ open, onClose, onSubmitted }: AddComposerProps) {
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const { mutateAsync, isPending } = useAddTask()
+  const addTask = useAddTask()
 
   useEffect(() => {
     if (open) {
@@ -33,11 +33,11 @@ export function AddComposer({ open, onClose, onSubmitted }: AddComposerProps) {
 
   if (!open) return null
 
-  const canSubmit = !!draft.trim() && !isPending
+  const canSubmit = !!draft.trim()
 
   const submit = async (type: AddType) => {
     if (!canSubmit) return
-    await mutateAsync({ title: draft.trim(), type })
+    await addTask(draft.trim(), type)
     onSubmitted?.()
     setDraft('')
     onClose()

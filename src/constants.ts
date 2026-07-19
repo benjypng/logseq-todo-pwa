@@ -4,8 +4,6 @@ export const TASK_SCHEDULED_KEY = ':logseq.property/scheduled'
 
 export const TASK_DEADLINE_KEY = ':logseq.property/deadline'
 
-export const BASE_URL_API_HTTP = '/logseq-api/api'
-
 export const BASE_URL_API_CLI = '/logseq-cli'
 
 export const GET_TASKS_FROM_LOGSEQ = `

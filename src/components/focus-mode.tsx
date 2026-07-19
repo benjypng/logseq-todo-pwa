@@ -2,25 +2,25 @@ import { format } from 'date-fns'
 import { ArrowLeft, ExternalLink, Flag } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { markTaskAsDoing, markTaskAsDone, markTaskAsTodo } from '../api'
 import { useGraph } from '../hooks/use-graph'
-import { useSetDeadline } from '../hooks/use-tasks'
+import { useSetDeadline, useSetStatus } from '../hooks/use-tasks'
 import type { FocusModeProps } from '../types'
 
 export function FocusMode({ task, onExit }: FocusModeProps) {
   const [isActing, setIsActing] = useState(false)
   const { data: graphName } = useGraph()
+  const setStatus = useSetStatus()
   const setDeadline = useSetDeadline()
   const deadlineInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    markTaskAsDoing(task.uuid).catch(console.error)
-  }, [task.uuid])
+    setStatus(task.uuid, 'Doing').catch(console.error)
+  }, [task.uuid, setStatus])
 
   const handleNotDone = () => {
     if (isActing) return
     setIsActing(true)
-    markTaskAsTodo(task.uuid)
+    setStatus(task.uuid, 'Todo')
       .catch(console.error)
       .finally(() => {
         setIsActing(false)
@@ -41,7 +41,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
   const handleComplete = () => {
     if (isActing) return
     setIsActing(true)
-    markTaskAsDone(task.uuid)
+    setStatus(task.uuid, 'Done')
       .catch(console.error)
       .finally(() => {
         setIsActing(false)
@@ -52,11 +52,11 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
   const handleDeadlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (!value) {
-      setDeadline.mutate({ uuid: task.uuid, date: null })
+      setDeadline(task.uuid, null)
       return
     }
     const [y, m, d] = value.split('-').map(Number)
-    setDeadline.mutate({ uuid: task.uuid, date: new Date(y, m - 1, d) })
+    setDeadline(task.uuid, new Date(y, m - 1, d))
   }
 
   const deadlineValue = task.deadline ? format(task.deadline, 'yyyy-MM-dd') : ''
@@ -114,7 +114,7 @@ export function FocusMode({ task, onExit }: FocusModeProps) {
         {task.deadline && (
           <button
             type="button"
-            onClick={() => setDeadline.mutate({ uuid: task.uuid, date: null })}
+            onClick={() => setDeadline(task.uuid, null)}
             className="text-[12px] text-muted-foreground underline-offset-2 hover:underline"
           >
             Clear deadline
