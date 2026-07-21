@@ -58,6 +58,14 @@ Or separately, with the host flag to expose the dev server to your local network
 
 Ensure the app is accessible by visiting `http://<YOUR_SERVER_IP>:5173` from another device on the same network.
 
+### Running in Production
+Build the app, then serve the static build and the sidecar API from a single Bun server on port 5175:
+
+    bun run build
+    bun run serve
+
+`bun run serve` starts `sidecar/serve.ts`, which serves `dist/` (with an `index.html` fallback for client-side routes) and handles `/logseq-cli/*` API requests in the same process — no Vite involved. It reads `LOGSEQ_GRAPH` like the dev sidecar, and the port can be overridden with `PORT`. The PWA service worker only activates with the production build, so installed PWAs auto-update from this server.
+
 ### Accessing on Mobile (Tailscale)
 1.  **Enable Tailscale** on your mobile device.
 2.  Open your mobile browser and navigate to `http://<YOUR_TAILSCALE_IP>:5173`.

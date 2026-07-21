@@ -8,6 +8,7 @@
     "sidecar": "bun run sidecar/server.ts",
     "start": "bun run sidecar & SIDECAR_PID=$!; trap 'kill $SIDECAR_PID 2>/dev/null' EXIT INT TERM; bun run dev",
     "build": "bunx vite build",
+    "serve": "bun run sidecar/serve.ts",
     "test": "bun test",
     "prepare": "husky",
     "lint:precommit": "echo \"Running biome\" && bunx @biomejs/biome check --write . && echo \"Running tsc\" && tsc --noEmit"
