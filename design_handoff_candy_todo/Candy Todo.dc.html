@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EFE7F7; font-family:'Nunito',system-ui,sans-serif; }
+  a { color:#FF3D8B; text-decoration:none; }
+  a:hover { color:#6A5CFF; }
+  @keyframes wob { 0%,100%{transform:rotate(-3deg) translateY(0)} 50%{transform:rotate(3deg) translateY(-6px)} }
+  @keyframes blink { 0%,92%,100%{transform:scaleY(1)} 96%{transform:scaleY(0.1)} }
+  @keyframes pop { 0%{transform:scale(0.6)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  @keyframes shimmer { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+  @keyframes rise { from{transform:translateY(100%)} to{transform:translateY(0)} }
+</style>
+</helmet>
+
+<section style="padding:56px 48px 80px; display:flex; flex-direction:column; gap:28px">
+  <div style="display:flex; align-items:baseline; gap:16px; font-family:'Fredoka',sans-serif">
+    <div style="font-size:15px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#8B7BA8">Turn 1 — candy directions</div>
+    <div style="font-size:14px; color:#8B7BA8; font-family:'Nunito',sans-serif">1a is live: tap the circles, the tabs, the + button.</div>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:56px; align-items:flex-start">
+
+    <div id="1a" style="display:flex; flex-direction:column; gap:14px">
+      <div style="display:flex; align-items:center; gap:10px">
+        <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#FF3D8B; color:#fff; padding:4px 12px; border-radius:999px">1a</div>
+        <div style="font-family:'Fredoka',sans-serif; font-size:19px; color:#2A1B3D">Bubblegum Arcade — interactive</div>
+      </div>
+      <div style="width:414px; padding:12px; border-radius:56px; background:#2A1B3D; box-shadow:0 24px 60px rgba(42,27,61,0.35)">
+        <div style="position:relative; width:390px; height:844px; border-radius:44px; overflow:hidden; background:#FFF1F7; display:flex; flex-direction:column">
+
+          <div style="padding:20px 22px 14px; background:linear-gradient(160deg,#FF3D8B 0%,#6A5CFF 100%); color:#fff; flex-shrink:0">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+              <div>
+                <div style="font-family:'Fredoka',sans-serif; font-size:40px; font-weight:600; line-height:1">{{ screenTitle }}</div>
+                <div style="font-size:14px; font-weight:700; opacity:0.9; margin-top:4px">{{ screenSub }}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.22); border:2px solid rgba(255,255,255,0.5); padding:6px 12px; border-radius:999px">
+                <div style="width:10px; height:10px; border-radius:50%; background:#2EE6A8"></div>
+                <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px">{{ streak }} day streak</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:7px; margin-top:16px">
+              <sc-for list="{{ streakDots }}" as="d" hint-placeholder-count="7">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px">
+                  <div style="{{ d.style }}"></div>
+                  <div style="font-size:10px; font-weight:800; letter-spacing:0.08em; opacity:0.75">{{ d.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:18px 20px 24px">
+            <div style="display:flex; gap:14px; align-items:center; background:#fff; border:3px solid #2A1B3D; border-radius:26px; padding:14px 16px; box-shadow:5px 5px 0 #2A1B3D; margin-bottom:18px">
+              <div style="{{ mascotWrap }}">
+                <div style="position:relative; width:62px; height:62px; border-radius:50% 50% 46% 46%; background:linear-gradient(165deg,#FFE45E,#FF9F1C); border:3px solid #2A1B3D">
+                  <div style="position:absolute; left:12px; top:22px; width:11px; height:11px; border-radius:50%; background:#2A1B3D; animation:blink 5s infinite"></div>
+                  <div style="position:absolute; right:12px; top:22px; width:11px; height:11px; border-radius:50%; background:#2A1B3D; animation:blink 5s infinite"></div>
+                  <div style="{{ mouthStyle }}"></div>
+                  <div style="position:absolute; left:4px; top:32px; width:10px; height:6px; border-radius:50%; background:#FF3D8B; opacity:0.6"></div>
+                  <div style="position:absolute; right:4px; top:32px; width:10px; height:6px; border-radius:50%; background:#FF3D8B; opacity:0.6"></div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div style="font-family:'Fredoka',sans-serif; font-size:19px; font-weight:600; color:#2A1B3D; line-height:1.2">{{ mascotLine }}</div>
+                <div style="font-size:13px; font-weight:700; color:#8B7BA8; margin-top:3px">{{ mascotSub }}</div>
+              </div>
+            </div>
+
+            <div style="height:16px; border-radius:999px; border:3px solid #2A1B3D; background:#FFE0EE; overflow:hidden; margin-bottom:6px">
+              <div style="{{ progressStyle }}"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:#8B7BA8; margin-bottom:18px">
+              <div>{{ progressLabel }}</div>
+              <div>{{ progressCount }}</div>
+            </div>
+
+            <sc-for list="{{ visible }}" as="t" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:14px; background:#fff; border:3px solid #2A1B3D; border-radius:22px; padding:14px 16px; margin-bottom:12px; box-shadow:4px 4px 0 #2A1B3D">
+                <div onClick="{{ t.toggle }}" style="{{ t.dotStyle }}">
+                  <div style="{{ t.tickStyle }}"></div>
+                </div>
+                <div style="flex:1; min-width:0">
+                  <div style="{{ t.textStyle }}">{{ t.text }}</div>
+                  <div style="display:flex; gap:6px; margin-top:6px">
+                    <div style="{{ t.tagStyle }}">{{ t.tag }}</div>
+                    <div style="font-size:12px; font-weight:800; color:#B9AECB; padding:3px 0">{{ t.when }}</div>
+                  </div>
+                </div>
+                <div style="{{ t.candyStyle }}"></div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center; padding:40px 20px; border:3px dashed #FFB3D1; border-radius:26px">
+                <div style="font-family:'Fredoka',sans-serif; font-size:22px; color:#FF3D8B">Nothing here. Suspicious.</div>
+                <div style="font-size:14px; font-weight:700; color:#8B7BA8; margin-top:6px">Hit the big pink button and give me something to chew on.</div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div onClick="{{ openSheet }}" style="position:absolute; right:20px; bottom:112px; width:68px; height:68px; border-radius:50%; background:#FF3D8B; border:4px solid #2A1B3D; box-shadow:5px 5px 0 #2A1B3D; display:flex; align-items:center; justify-content:center; cursor:pointer" style-active="transform:translate(3px,3px); box-shadow:2px 2px 0 #2A1B3D">
+            <div style="position:relative; width:26px; height:26px">
+              <div style="position:absolute; top:11px; left:0; width:26px; height:5px; border-radius:3px; background:#fff"></div>
+              <div style="position:absolute; left:11px; top:0; width:5px; height:26px; border-radius:3px; background:#fff"></div>
+            </div>
+          </div>
+
+          <div style="display:flex; background:#fff; border-top:3px solid #2A1B3D; padding:10px 8px 22px; flex-shrink:0; gap:4px">
+            <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+              <div onClick="{{ tab.go }}" style="{{ tab.style }}">
+                <div style="{{ tab.iconStyle }}"></div>
+                <div style="font-family:'Fredoka',sans-serif; font-size:13px; font-weight:600">{{ tab.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; inset:0; background:rgba(42,27,61,0.55); display:flex; align-items:flex-end">
+              <div onClick="{{ closeSheet }}" style="position:absolute; inset:0"></div>
+              <div style="position:relative; width:100%; background:#FFF1F7; border-top:4px solid #2A1B3D; border-radius:36px 36px 0 0; padding:22px 22px 30px; animation:rise 0.28s cubic-bezier(0.22,1.2,0.36,1)">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+                  <div style="font-family:'Fredoka',sans-serif; font-size:28px; font-weight:600; color:#2A1B3D">Feed me a task</div>
+                  <div onClick="{{ closeSheet }}" style="width:38px; height:38px; border-radius:50%; border:3px solid #2A1B3D; background:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; color:#2A1B3D; cursor:pointer">✕</div>
+                </div>
+                <input value="{{ draft }}" onChange="{{ setDraft }}" placeholder="What are we chewing on?" style="width:100%; box-sizing:border-box; font-family:'Nunito',sans-serif; font-size:17px; font-weight:700; color:#2A1B3D; padding:16px 18px; border-radius:20px; border:3px solid #2A1B3D; background:#fff; outline:none; box-shadow:4px 4px 0 #FF3D8B">
+                <div style="font-size:12px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#8B7BA8; margin:18px 0 10px">Pick a flavour</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px">
+                  <sc-for list="{{ flavours }}" as="f" hint-placeholder-count="3">
+                    <div onClick="{{ f.pick }}" style="{{ f.style }}">
+                      <div style="{{ f.blob }}"></div>
+                      <div style="font-family:'Fredoka',sans-serif; font-size:16px; font-weight:600; color:#2A1B3D">{{ f.label }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <div id="1b" style="display:flex; flex-direction:column; gap:14px">
+      <div style="display:flex; align-items:center; gap:10px">
+        <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#2A1B3D; color:#C6FF3D; padding:4px 12px; border-radius:999px">1b</div>
+        <div style="font-family:'Fredoka',sans-serif; font-size:19px; color:#2A1B3D">Sour Neon — dark, acid, high voltage</div>
+      </div>
+      <div style="width:414px; padding:12px; border-radius:56px; background:#111018; box-shadow:0 24px 60px rgba(17,16,24,0.35)">
+        <div style="width:390px; height:844px; border-radius:44px; overflow:hidden; background:#14121C; display:flex; flex-direction:column; color:#fff">
+          <div style="padding:22px 22px 16px; flex-shrink:0">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <div style="font-family:'Fredoka',sans-serif; font-size:42px; font-weight:600; color:#C6FF3D; line-height:1">Tasks</div>
+              <div style="display:flex; align-items:center; gap:8px; border:2px solid #C6FF3D; padding:6px 12px; border-radius:999px; color:#C6FF3D; font-family:'Fredoka',sans-serif; font-size:15px; box-shadow:0 0 18px rgba(198,255,61,0.35)">12 day streak</div>
+            </div>
+            <div style="font-size:14px; font-weight:700; color:#7C74A0; margin-top:6px">Three left. Then you're free, allegedly.</div>
+            <div style="display:flex; gap:6px; margin-top:16px">
+              <div style="flex:1; height:12px; border-radius:999px; background:#FF2E9F; box-shadow:0 0 14px rgba(255,46,159,0.6)"></div>
+              <div style="flex:1; height:12px; border-radius:999px; background:#00E5FF; box-shadow:0 0 14px rgba(0,229,255,0.6)"></div>
+              <div style="flex:1; height:12px; border-radius:999px; background:#C6FF3D; box-shadow:0 0 14px rgba(198,255,61,0.6)"></div>
+              <div style="flex:1; height:12px; border-radius:999px; background:#2A2740"></div>
+              <div style="flex:1; height:12px; border-radius:999px; background:#2A2740"></div>
+            </div>
+          </div>
+          <div style="flex:1; padding:8px 22px; overflow:hidden">
+            <div style="display:flex; align-items:center; gap:14px; background:#1D1A2B; border-radius:22px; padding:16px; margin-bottom:12px; border:1px solid #322D4A">
+              <div style="width:28px; height:28px; border-radius:50%; border:3px solid #FF2E9F; box-shadow:0 0 14px rgba(255,46,159,0.5)"></div>
+              <div style="flex:1; font-size:17px; font-weight:800">Double check FSM and IBKR</div>
+              <div style="width:14px; height:14px; border-radius:4px; transform:rotate(45deg); background:#FF2E9F"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#1D1A2B; border-radius:22px; padding:16px; margin-bottom:12px; border:1px solid #322D4A">
+              <div style="width:28px; height:28px; border-radius:50%; border:3px solid #00E5FF; box-shadow:0 0 14px rgba(0,229,255,0.5)"></div>
+              <div style="flex:1; font-size:17px; font-weight:800">Draft the discharge summary</div>
+              <div style="width:14px; height:14px; border-radius:50%; background:#00E5FF"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#1D1A2B; border-radius:22px; padding:16px; margin-bottom:12px; border:1px solid #322D4A; opacity:0.55">
+              <div style="width:28px; height:28px; border-radius:50%; background:#C6FF3D; box-shadow:0 0 18px rgba(198,255,61,0.6)"></div>
+              <div style="flex:1; font-size:17px; font-weight:800; text-decoration:line-through; color:#7C74A0">Book the family conference</div>
+            </div>
+            <div style="margin-top:26px; text-align:center; padding:26px; border-radius:26px; background:radial-gradient(circle at 50% 0%,#2A2440,#1A1728)">
+              <div style="width:74px; height:74px; margin:0 auto; border-radius:50% 50% 46% 46%; background:linear-gradient(165deg,#C6FF3D,#00E5FF); box-shadow:0 0 34px rgba(0,229,255,0.5); position:relative">
+                <div style="position:absolute; left:16px; top:28px; width:12px; height:12px; border-radius:50%; background:#14121C"></div>
+                <div style="position:absolute; right:16px; top:28px; width:12px; height:12px; border-radius:50%; background:#14121C"></div>
+                <div style="position:absolute; left:27px; top:46px; width:20px; height:10px; border-radius:0 0 12px 12px; background:#14121C"></div>
+              </div>
+              <div style="font-family:'Fredoka',sans-serif; font-size:20px; margin-top:14px; color:#C6FF3D">Two more and I glow.</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; padding:14px 8px 26px; background:#1A1728; border-top:1px solid #322D4A; font-family:'Fredoka',sans-serif; font-size:13px; color:#7C74A0">
+            <div>Today</div>
+            <div style="color:#C6FF3D">Tasks</div>
+            <div>Errands</div>
+            <div style="color:#FF2E9F">Add</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="1c" style="display:flex; flex-direction:column; gap:14px">
+      <div style="display:flex; align-items:center; gap:10px">
+        <div style="font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; background:#E4322B; color:#FFF3D6; padding:4px 12px; border-radius:999px">1c</div>
+        <div style="font-family:'Fredoka',sans-serif; font-size:19px; color:#2A1B3D">Fruit Stripe — retro sweet-shop</div>
+      </div>
+      <div style="width:414px; padding:12px; border-radius:56px; background:#3A2415; box-shadow:0 24px 60px rgba(58,36,21,0.3)">
+        <div style="width:390px; height:844px; border-radius:44px; overflow:hidden; background:#FFF3D6; display:flex; flex-direction:column; color:#3A2415">
+          <div style="height:14px; background:repeating-linear-gradient(90deg,#E4322B 0 22px,#FFF3D6 22px 44px,#F4A623 44px 66px,#FFF3D6 66px 88px,#2E9E6B 88px 110px,#FFF3D6 110px 132px); flex-shrink:0"></div>
+          <div style="padding:22px 24px 12px; flex-shrink:0">
+            <div style="font-family:'Fredoka',sans-serif; font-size:44px; font-weight:600; line-height:1; color:#E4322B">Tasks</div>
+            <div style="font-size:14px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#A88A5F; margin-top:6px">Freshly made this morning</div>
+            <div style="display:inline-flex; align-items:center; gap:8px; margin-top:14px; background:#2E9E6B; color:#FFF3D6; border-radius:999px; padding:7px 16px; font-family:'Fredoka',sans-serif; font-size:16px">12 days in a row</div>
+          </div>
+          <div style="flex:1; padding:10px 24px; overflow:hidden">
+            <div style="display:flex; align-items:center; gap:14px; background:#fff; border:2px solid #3A2415; border-radius:16px; padding:16px; margin-bottom:12px">
+              <div style="width:26px; height:26px; border-radius:50%; border:3px solid #E4322B"></div>
+              <div style="flex:1; font-size:17px; font-weight:700">Double check FSM and IBKR</div>
+              <div style="width:12px; height:26px; border-radius:6px; background:repeating-linear-gradient(180deg,#E4322B 0 6px,#FFF3D6 6px 12px)"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#fff; border:2px solid #3A2415; border-radius:16px; padding:16px; margin-bottom:12px">
+              <div style="width:26px; height:26px; border-radius:50%; border:3px solid #F4A623"></div>
+              <div style="flex:1; font-size:17px; font-weight:700">Draft the discharge summary</div>
+              <div style="width:12px; height:26px; border-radius:6px; background:repeating-linear-gradient(180deg,#F4A623 0 6px,#FFF3D6 6px 12px)"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; background:#F6E7C6; border:2px solid #C9B58C; border-radius:16px; padding:16px; margin-bottom:12px">
+              <div style="width:26px; height:26px; border-radius:50%; background:#2E9E6B"></div>
+              <div style="flex:1; font-size:17px; font-weight:700; text-decoration:line-through; color:#A88A5F">Book the family conference</div>
+            </div>
+            <div style="margin-top:24px; border:2px dashed #E4322B; border-radius:20px; padding:22px; text-align:center; background:#fff">
+              <div style="width:70px; height:70px; margin:0 auto; border-radius:50%; background:conic-gradient(#E4322B 0 25%,#FFF3D6 0 50%,#F4A623 0 75%,#FFF3D6 0); border:3px solid #3A2415; position:relative">
+                <div style="position:absolute; left:18px; top:28px; width:10px; height:10px; border-radius:50%; background:#3A2415"></div>
+                <div style="position:absolute; right:18px; top:28px; width:10px; height:10px; border-radius:50%; background:#3A2415"></div>
+              </div>
+              <div style="font-family:'Fredoka',sans-serif; font-size:20px; margin-top:12px; color:#E4322B">One more for a free lollipop.</div>
+              <div style="font-size:13px; font-weight:700; color:#A88A5F; margin-top:4px">(There is no lollipop. Do it anyway.)</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; padding:14px 8px 26px; background:#fff; border-top:2px solid #3A2415; font-family:'Fredoka',sans-serif; font-size:13px; color:#A88A5F">
+            <div>Today</div>
+            <div style="color:#E4322B">Tasks</div>
+            <div>Errands</div>
+            <div style="color:#2E9E6B">Add</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FF3D8B&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#FF3D8B&quot;,&quot;#6A5CFF&quot;,&quot;#FF9F1C&quot;,&quot;#2EE6A8&quot;],&quot;section&quot;:&quot;Candy&quot;},&quot;streak&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:12,&quot;min&quot;:0,&quot;max&quot;:365,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Candy&quot;}}">
+const PINK = '#FF3D8B', INK = '#2A1B3D', MINT = '#2EE6A8', GRAPE = '#6A5CFF', TANG = '#FF9F1C';
+
+class Component extends DCLogic {
+  state = {
+    tab: 'tasks',
+    sheetOpen: false,
+    draft: '',
+    tasks: [
+      { id: 1, text: 'Double check FSM and IBKR', tag: 'Task', when: 'no date', done: false, color: PINK },
+      { id: 2, text: 'Draft the discharge summary', tag: 'Task', when: 'today', done: false, color: GRAPE },
+      { id: 3, text: 'Book the family conference', tag: 'Task', when: 'today', done: true, color: PINK },
+      { id: 4, text: 'Pick up the dry cleaning', tag: 'Errand', when: 'this week', done: false, color: TANG },
+      { id: 5, text: 'Top up the EZ-link', tag: 'Errand', when: 'no date', done: true, color: TANG },
+      { id: 6, text: 'Ten minutes of nothing', tag: 'Task', when: 'today', done: false, color: PINK }
+    ]
+  };
+
+  accent() { return this.props.accent || PINK; }
+
+  toggle(id) {
+    this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) }));
+  }
+
+  add(tag) {
+    const text = this.state.draft.trim();
+    if (!text) return;
+    const color = tag === 'Errand' ? TANG : tag === 'Inbox' ? GRAPE : PINK;
+    this.setState(s => ({
+      tasks: [{ id: Date.now(), text, tag, when: 'no date', done: false, color }, ...s.tasks],
+      draft: '', sheetOpen: false, tab: tag === 'Errand' ? 'errands' : 'tasks'
+    }));
+  }
+
+  filtered() {
+    const { tab, tasks } = this.state;
+    if (tab === 'errands') return tasks.filter(t => t.tag === 'Errand');
+    if (tab === 'today') return tasks.filter(t => t.when === 'today');
+    return tasks.filter(t => t.tag !== 'Errand');
+  }
+
+  renderVals() {
+    const list = this.filtered();
+    const doneCount = list.filter(t => t.done).length;
+    const pct = list.length ? Math.round(doneCount / list.length * 100) : 0;
+    const streak = this.props.streak ?? 12;
+    const allDone = list.length > 0 && doneCount === list.length;
+
+    const titles = {
+      today: ['Today', 'Small day. Big energy.'],
+      tasks: ['Tasks', 'Sweet, sweet unfinished business.'],
+      errands: ['Errands', 'Out-in-the-world stuff.']
+    }[this.state.tab];
+
+    const mascotFace = allDone
+      ? { line: 'LOOK AT YOU GO.', sub: 'Nothing left. Go eat something.' }
+      : doneCount > 0
+        ? { line: 'Ooh, momentum.', sub: (list.length - doneCount) + ' to go and I do a little dance.' }
+        : { line: 'I am simply sitting here.', sub: 'Tap one circle. Just one. For me.' };
+
+    return {
+      screenTitle: titles[0],
+      screenSub: titles[1],
+      streak,
+      isEmpty: list.length === 0,
+      sheetOpen: this.state.sheetOpen,
+      draft: this.state.draft,
+      progressLabel: allDone ? 'day cleared' : 'sugar level',
+      progressCount: doneCount + ' / ' + list.length,
+      progressStyle: `height:100%; width:${pct}%; border-radius:999px; background:linear-gradient(90deg,#FFE45E,${this.accent()},${GRAPE}); background-size:200% 100%; animation:shimmer 2.4s linear infinite; transition:width 0.45s cubic-bezier(0.22,1.2,0.36,1)`,
+
+      mascotWrap: `animation:${allDone ? 'wob 0.9s ease-in-out infinite' : 'wob 4.5s ease-in-out infinite'}; flex-shrink:0`,
+      mouthStyle: allDone
+        ? `position:absolute; left:19px; top:37px; width:24px; height:16px; border-radius:0 0 14px 14px; background:${INK}`
+        : `position:absolute; left:22px; top:41px; width:18px; height:5px; border-radius:4px; background:${INK}`,
+      mascotLine: mascotFace.line,
+      mascotSub: mascotFace.sub,
+
+      streakDots: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, i) => ({
+        label,
+        style: i <= 4
+          ? `width:22px; height:22px; border-radius:50%; background:#FFE45E; border:2px solid rgba(255,255,255,0.9); box-shadow:0 0 0 3px rgba(255,255,255,0.18)`
+          : `width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.16); border:2px dashed rgba(255,255,255,0.55)`
+      })),
+
+      visible: list.map(t => ({
+        ...t,
+        toggle: () => this.toggle(t.id),
+        dotStyle: `width:32px; height:32px; border-radius:50%; flex-shrink:0; cursor:pointer; border:3px solid ${INK}; display:flex; align-items:center; justify-content:center; transition:all 0.2s; background:${t.done ? MINT : '#fff'}; box-shadow:${t.done ? '0 0 0 4px rgba(46,230,168,0.3)' : 'none'}`,
+        tickStyle: t.done
+          ? `width:11px; height:6px; border-left:3px solid ${INK}; border-bottom:3px solid ${INK}; transform:rotate(-45deg) translate(1px,-2px); animation:pop 0.3s ease-out`
+          : 'display:none',
+        textStyle: `font-size:17px; font-weight:800; line-height:1.25; color:${t.done ? '#B9AECB' : INK}; text-decoration:${t.done ? 'line-through' : 'none'}`,
+        tagStyle: `font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:${t.color}; padding:3px 9px; border-radius:999px`,
+        candyStyle: `width:16px; height:16px; flex-shrink:0; border:2px solid ${INK}; background:${t.color}; border-radius:${t.tag === 'Errand' ? '4px' : '50%'}; transform:${t.tag === 'Errand' ? 'rotate(45deg)' : 'none'}; opacity:${t.done ? 0.25 : 1}`
+      })),
+
+      tabs: [
+        { key: 'today', label: 'Today', color: TANG },
+        { key: 'tasks', label: 'Tasks', color: PINK },
+        { key: 'errands', label: 'Errands', color: GRAPE }
+      ].map(tab => {
+        const on = this.state.tab === tab.key;
+        return {
+          label: tab.label,
+          go: () => this.setState({ tab: tab.key }),
+          style: `flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 4px; border-radius:18px; cursor:pointer; color:${on ? '#fff' : '#B9AECB'}; background:${on ? tab.color : 'transparent'}; border:3px solid ${on ? INK : 'transparent'}; transition:all 0.18s`,
+          iconStyle: `width:18px; height:18px; border-radius:${tab.key === 'errands' ? '5px' : '50%'}; background:${on ? '#fff' : '#DCD5E8'}`
+        };
+      }),
+
+      openSheet: () => this.setState({ sheetOpen: true }),
+      closeSheet: () => this.setState({ sheetOpen: false, draft: '' }),
+      setDraft: e => this.setState({ draft: e.target.value }),
+
+      flavours: [
+        { label: 'Task', color: PINK, round: '50%' },
+        { label: 'Errand', color: TANG, round: '6px' },
+        { label: 'Inbox', color: GRAPE, round: '50% 50% 46% 46%' }
+      ].map(f => ({
+        label: f.label,
+        pick: () => this.add(f.label),
+        style: `display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px 8px; border-radius:22px; background:#fff; border:3px solid ${INK}; box-shadow:4px 4px 0 ${f.color}; cursor:pointer`,
+        blob: `width:28px; height:28px; border:3px solid ${INK}; background:${f.color}; border-radius:${f.round}`
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

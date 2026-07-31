@@ -1,13 +1,21 @@
-import { Moon, Plus, RefreshCw, Sun } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useCompletions } from '../hooks/use-completions'
 import { useSetStatus, useToggleScheduleToday } from '../hooks/use-tasks'
-import { isToday } from '../lib/date'
-import { cn } from '../lib/utils'
-import type { BottomTab, Task, TaskListProps } from '../types'
+import {
+  type CompletionRecord,
+  completionsOnDay,
+  streakDays,
+  weekDots,
+} from '../lib/completions'
+import { dueLabel, isToday } from '../lib/date'
+import type { AddType, BottomTab, Task, TaskListProps } from '../types'
 import { AddComposer } from './add-composer'
 import { BottomTabBar } from './bottom-tab-bar'
-import { SyncDot } from './sync-dot'
+import { CandyHeader } from './candy-header'
+import { MascotCard } from './mascot-card'
+import { SugarBar } from './sugar-bar'
 import { TaskItem } from './task-item'
 
 const TAB_STORAGE_KEY = 'logseq-pwa-bottom-tab'
@@ -17,46 +25,35 @@ function readStoredTab(): BottomTab {
     const v = localStorage.getItem(TAB_STORAGE_KEY)
     if (v === 'today' || v === 'tasks' || v === 'errands') return v
   } catch {
-    // ignore
+    return 'today'
   }
   return 'today'
 }
 
-interface Section {
-  label: string
-  tasks: Task[]
+function matchesToday(task: Task): boolean {
+  return (
+    task.isScheduledToday ||
+    (task.scheduledDate !== null &&
+      task.scheduledDate.getTime() < Date.now()) ||
+    (task.deadline !== null && isToday(task.deadline))
+  )
 }
 
-function groupTasks(tasks: Task[]): Section[] {
-  const now = Date.now()
-  const overdue: Task[] = []
-  const today: Task[] = []
-  const upcoming: Task[] = []
-  const unscheduled: Task[] = []
+function matchesTab(tab: BottomTab, taskType: Task['taskType']): boolean {
+  return tab === 'errands' ? taskType === 'Errand' : taskType === 'task'
+}
 
-  for (const t of tasks) {
-    if (t.isScheduledToday) {
-      today.push(t)
-    } else if (t.scheduledDate && t.scheduledDate.getTime() < now) {
-      overdue.push(t)
-    } else if (t.scheduledDate) {
-      upcoming.push(t)
-    } else {
-      unscheduled.push(t)
-    }
+function toDoneTask(record: CompletionRecord): Task {
+  return {
+    uuid: record.uuid,
+    displayText: record.text,
+    status: 'Todo',
+    scheduledDate: null,
+    deadline: null,
+    isScheduledToday: record.wasToday,
+    pageName: '',
+    taskType: record.taskType,
   }
-
-  upcoming.sort(
-    (a, b) =>
-      (a.scheduledDate?.getTime() ?? 0) - (b.scheduledDate?.getTime() ?? 0),
-  )
-
-  const out: Section[] = []
-  if (today.length) out.push({ label: 'Today', tasks: today })
-  if (overdue.length) out.push({ label: 'Overdue', tasks: overdue })
-  if (upcoming.length) out.push({ label: 'Upcoming', tasks: upcoming })
-  if (unscheduled.length) out.push({ label: 'No date', tasks: unscheduled })
-  return out
 }
 
 export function TaskList({
@@ -67,13 +64,6 @@ export function TaskList({
   onRefetch,
 }: TaskListProps) {
   const [activeTab, setActiveTab] = useState<BottomTab>(readStoredTab)
-  const [isDark, setIsDark] = useState(() => {
-    try {
-      return localStorage.getItem('theme') === 'dark'
-    } catch {
-      return false
-    }
-  })
   const [composerOpen, setComposerOpen] = useState(false)
 
   const [newUuids, setNewUuids] = useState<Set<string>>(() => new Set())
@@ -83,6 +73,7 @@ export function TaskList({
 
   const setStatus = useSetStatus()
   const toggleToday = useToggleScheduleToday()
+  const { records, complete, uncomplete } = useCompletions()
 
   const openComposer = () => setComposerOpen(true)
 
@@ -97,15 +88,6 @@ export function TaskList({
       window.history.replaceState({}, '', newUrl)
     }
   }, [])
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark)
-    try {
-      localStorage.setItem('theme', isDark ? 'dark' : 'light')
-    } catch {
-      // ignore
-    }
-  }, [isDark])
 
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
 
@@ -139,118 +121,124 @@ export function TaskList({
     try {
       localStorage.setItem(TAB_STORAGE_KEY, tab)
     } catch {
-      // ignore
+      return
     }
   }
 
   const filtered = useMemo(() => {
-    if (activeTab === 'today') {
-      return tasks.filter(
-        (t) =>
-          t.isScheduledToday ||
-          (t.scheduledDate && t.scheduledDate.getTime() < Date.now()) ||
-          (t.deadline && isToday(t.deadline)),
-      )
-    }
-    return tasks.filter((t) =>
-      activeTab === 'tasks' ? t.taskType === 'task' : t.taskType === 'Errand',
+    const visible =
+      activeTab === 'today'
+        ? tasks.filter(matchesToday)
+        : tasks.filter((t) => matchesTab(activeTab, t.taskType))
+    return [...visible].sort(
+      (a, b) =>
+        (a.scheduledDate?.getTime() ??
+          a.deadline?.getTime() ??
+          Number.POSITIVE_INFINITY) -
+        (b.scheduledDate?.getTime() ??
+          b.deadline?.getTime() ??
+          Number.POSITIVE_INFINITY),
     )
   }, [tasks, activeTab])
 
-  const sections = useMemo(() => {
-    if (activeTab === 'today') {
-      return [{ label: '', tasks: filtered }]
+  const doneRecords = useMemo(() => {
+    const liveUuids = new Set(tasks.map((t) => t.uuid))
+    return completionsOnDay(records, new Date())
+      .filter((r) => !liveUuids.has(r.uuid))
+      .filter((r) =>
+        activeTab === 'today' ? r.wasToday : matchesTab(activeTab, r.taskType),
+      )
+      .sort((a, b) => a.completedAt - b.completedAt)
+  }, [records, tasks, activeTab])
+
+  const doneCount = doneRecords.length
+  const total = filtered.length + doneCount
+  const streak = streakDays(records, new Date())
+  const dots = weekDots(records, new Date())
+
+  const handleToggle = (task: Task, done: boolean) => {
+    if (done) {
+      uncomplete(task.uuid)
+      setStatus(task.uuid, 'Todo')
+    } else {
+      complete({
+        uuid: task.uuid,
+        text: task.displayText,
+        taskType: task.taskType,
+        whenLabel: dueLabel(task.scheduledDate, task.deadline),
+        wasToday: matchesToday(task),
+        completedAt: Date.now(),
+      })
+      setStatus(task.uuid, 'Done')
     }
-    return groupTasks(filtered)
-  }, [filtered, activeTab])
-
-  const headerLabel =
-    activeTab === 'today'
-      ? 'Today'
-      : activeTab === 'tasks'
-        ? 'Tasks'
-        : 'Errands'
-
-  const handleComplete = (uuid: string) => {
-    setStatus(uuid, 'Done')
   }
 
   const handleToggleToday = (uuid: string, clear: boolean) => {
     toggleToday(uuid, clear)
   }
 
-  const iconBtn =
-    'flex items-center text-icon transition-colors hover:text-accent active:text-accent'
+  const handleSubmitted = (type: AddType) => {
+    expectNewUntil.current = Date.now() + 6000
+    handleTabChange(type === 'Errand' ? 'errands' : 'tasks')
+  }
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-background">
-      <div className="flex items-center gap-[14px] px-[30px] pt-[calc(20px+env(safe-area-inset-top))] pb-[6px]">
-        <h1 className="font-serif text-[50px] font-normal leading-[0.9] tracking-[0.01em] text-foreground">
-          {headerLabel}
-        </h1>
-        <div className="ml-auto flex items-center gap-5">
-          <SyncDot enabled />
-          <button
-            type="button"
-            className={cn(iconBtn, isLoading && 'animate-spin')}
-            onClick={onRefetch}
-            disabled={isLoading}
-            aria-label="Refresh"
-          >
-            <RefreshCw className="h-[21px] w-[21px]" strokeWidth={1.8} />
-          </button>
-          <button
-            type="button"
-            className={iconBtn}
-            onClick={() => setIsDark((d) => !d)}
-            aria-label="Toggle dark mode"
-          >
-            {isDark ? (
-              <Sun className="h-[21px] w-[21px]" strokeWidth={1.8} />
-            ) : (
-              <Moon className="h-[21px] w-[21px]" strokeWidth={1.8} />
-            )}
-          </button>
-        </div>
-      </div>
+      <CandyHeader
+        tab={activeTab}
+        streak={streak}
+        weekDots={dots}
+        isLoading={isLoading}
+        onRefetch={onRefetch}
+      />
 
-      <div className="flex-1 overflow-y-auto px-[30px] pt-[2px] pb-[22px]">
-        {error && <p className="py-3 text-[13px] text-destructive">{error}</p>}
-        {!isLoading && filtered.length === 0 && !error && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-[15px] text-muted-foreground">
-              {activeTab === 'today'
-                ? 'Nothing scheduled for today'
-                : activeTab === 'tasks'
-                  ? 'No tasks'
-                  : 'No errands'}
+      <div className="flex-1 overflow-y-auto px-5 pb-[100px] pt-[18px]">
+        {error && (
+          <p className="pb-3 text-[13px] font-bold text-destructive">{error}</p>
+        )}
+
+        <MascotCard done={doneCount} total={total} />
+
+        <div className="mt-[14px]">
+          <SugarBar done={doneCount} total={total} />
+        </div>
+
+        {!isLoading && total === 0 && !error ? (
+          <div className="mt-4 rounded-[26px] border-[3px] border-dashed border-dash-pink px-5 py-10 text-center">
+            <p className="font-display text-[22px] font-semibold text-accent">
+              Nothing here. Suspicious.
+            </p>
+            <p className="mt-1 text-[14px] font-bold text-muted-foreground">
+              Hit the big pink button and give me something to chew on.
             </p>
           </div>
-        )}
-        {sections.map((section, i) => (
-          <div key={section.label || `s-${i}`}>
-            {section.label && (
-              <div
-                className={cn(
-                  'text-[13px] font-bold uppercase tracking-[0.1em] text-muted-foreground',
-                  i === 0 ? 'pt-[6px] pb-2' : 'pt-[26px] pb-2',
-                )}
-              >
-                {section.label}
-              </div>
-            )}
-            {section.tasks.map((task) => (
+        ) : (
+          <div className="mt-4 flex flex-col gap-3">
+            {filtered.map((task) => (
               <TaskItem
                 key={task.uuid}
                 task={task}
-                onComplete={handleComplete}
+                done={false}
+                whenLabel={dueLabel(task.scheduledDate, task.deadline)}
+                onToggle={handleToggle}
                 onToggleToday={handleToggleToday}
                 onEnterFocus={onEnterFocus}
                 isNew={newUuids.has(task.uuid)}
               />
             ))}
+            {doneRecords.map((record) => (
+              <TaskItem
+                key={record.uuid}
+                task={toDoneTask(record)}
+                done
+                whenLabel={record.whenLabel}
+                onToggle={handleToggle}
+                onToggleToday={handleToggleToday}
+                onEnterFocus={onEnterFocus}
+              />
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       {!composerOpen && (
@@ -258,29 +246,20 @@ export function TaskList({
           type="button"
           onClick={openComposer}
           aria-label="Add item"
-          className="absolute right-6 bottom-[calc(110px+env(safe-area-inset-bottom))] flex h-[62px] w-[62px] items-center justify-center rounded-full bg-accent text-white transition-[filter] hover:brightness-[1.06]"
-          style={{
-            boxShadow:
-              '0 12px 28px rgba(191,125,42,.42), 0 2px 6px rgba(0,0,0,.12)',
-          }}
+          className="absolute right-5 flex h-[68px] w-[68px] items-center justify-center rounded-full border-4 border-ink bg-accent text-white shadow-[5px_5px_0_0_#2A1B3D] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-[2px_2px_0_0_#2A1B3D]"
+          style={{ bottom: 'calc(112px + env(safe-area-inset-bottom))' }}
         >
-          <Plus className="h-[30px] w-[30px]" strokeWidth={2.3} />
+          <Plus className="h-[26px] w-[26px]" strokeWidth={3} />
         </button>
       )}
 
       <AddComposer
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
-        onSubmitted={() => {
-          expectNewUntil.current = Date.now() + 6000
-        }}
+        onSubmitted={handleSubmitted}
       />
 
-      <BottomTabBar
-        active={activeTab}
-        onChange={handleTabChange}
-        onAdd={openComposer}
-      />
+      <BottomTabBar active={activeTab} onChange={handleTabChange} />
     </div>
   )
 }

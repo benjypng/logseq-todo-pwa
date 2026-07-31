@@ -1,10 +1,8 @@
-import { CalendarOff, Flag, Sun } from 'lucide-react'
+import { CalendarOff, Sun } from 'lucide-react'
 import { Fragment, type ReactNode, useRef, useState } from 'react'
 
-import { formatAnnadoDate, isToday } from '../lib/date'
 import { cn } from '../lib/utils'
 import type { TaskItemProps } from '../types'
-import { Checkbox } from './ui/checkbox'
 
 const SWIPE_THRESHOLD = 80
 const MAX_SWIPE = 120
@@ -16,7 +14,7 @@ function renderTitle(text: string): ReactNode {
   const parts = text.split(WIKI_LINK_RE).filter(Boolean)
   return parts.map((part, i) =>
     part.startsWith('[[') && part.endsWith(']]') ? (
-      <span key={i} className="font-semibold text-ref">
+      <span key={i} className="text-ref">
         {part}
       </span>
     ) : (
@@ -25,9 +23,47 @@ function renderTitle(text: string): ReactNode {
   )
 }
 
+function CheckCircle({
+  done,
+  disabled,
+  onToggle,
+}: {
+  done: boolean
+  disabled: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className="-m-1.5 flex h-11 w-11 shrink-0 items-center justify-center"
+      disabled={disabled}
+      onClick={onToggle}
+      onPointerDown={(e) => e.stopPropagation()}
+      aria-label={done ? 'Mark task not done' : 'Mark task done'}
+      aria-pressed={done}
+    >
+      <span
+        className={cn(
+          'flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-ink',
+          done ? 'bg-mint shadow-[0_0_0_4px_rgba(46,230,168,0.3)]' : 'bg-card',
+        )}
+      >
+        {done && (
+          <span
+            className="mb-[3px] h-[6px] w-[11px] -rotate-45 border-b-[3px] border-l-[3px] border-ink"
+            style={{ animation: 'candyPop 0.3s ease-out' }}
+          />
+        )}
+      </span>
+    </button>
+  )
+}
+
 export function TaskItem({
   task,
-  onComplete,
+  done,
+  whenLabel,
+  onToggle,
   onToggleToday,
   onEnterFocus,
   isNew,
@@ -49,9 +85,13 @@ export function TaskItem({
   }
 
   const pending = !!task.pending
+  const inert = pending || done
+  const isErrand = task.taskType === 'Errand'
+  const tagColor = isErrand ? 'bg-tangerine' : 'bg-accent'
+  const tagLabel = isErrand ? 'Errand' : 'Task'
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (pending) return
+    if (inert) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
     startX.current = e.clientX
     startY.current = e.clientY
@@ -96,7 +136,7 @@ export function TaskItem({
   }
 
   const handleRowClick = () => {
-    if (pending) return
+    if (inert) return
     if (didSwipe.current) {
       didSwipe.current = false
       return
@@ -104,16 +144,14 @@ export function TaskItem({
     onEnterFocus(task.uuid)
   }
 
-  const deadlineOverdue =
-    task.deadline &&
-    task.deadline.getTime() < Date.now() &&
-    !isToday(task.deadline)
-  const dateToShow = task.scheduledDate ?? task.deadline
   const showSwipeReveal = dragX < 0
 
   return (
     <div
-      className="relative overflow-hidden"
+      className={cn(
+        'relative overflow-hidden rounded-[22px] border-[3px] border-ink bg-card shadow-[4px_4px_0_0_#2A1B3D]',
+        pending && 'opacity-60',
+      )}
       style={
         isNew
           ? { animation: 'annadoIn .5s cubic-bezier(.22,1,.36,1) both' }
@@ -122,15 +160,15 @@ export function TaskItem({
     >
       <div
         className={cn(
-          'absolute inset-y-0 right-0 flex w-[120px] items-center justify-end pr-[30px] transition-opacity',
+          'absolute inset-y-0 right-0 flex w-[120px] items-center justify-end pr-5 transition-opacity',
           task.isScheduledToday
-            ? 'bg-muted text-foreground'
-            : 'bg-accent text-accent-foreground',
+            ? 'bg-track-pink text-ink'
+            : 'bg-tangerine text-white',
           showSwipeReveal ? 'opacity-100' : 'opacity-0',
         )}
         aria-hidden
       >
-        <div className="flex items-center gap-1.5 text-[13px] font-semibold">
+        <div className="flex items-center gap-1.5 text-[13px] font-extrabold">
           {task.isScheduledToday ? (
             <>
               <CalendarOff className="h-4 w-4" />
@@ -147,10 +185,7 @@ export function TaskItem({
 
       <div
         ref={rowRef}
-        className={cn(
-          'relative flex select-none items-start gap-[17px] border-b border-divider bg-background px-[30px] py-[21px]',
-          pending && 'opacity-55',
-        )}
+        className="relative flex select-none items-center gap-[14px] bg-card px-4 py-[14px]"
         style={{
           transform: `translateX(${dragX}px)`,
           transition: isDragging ? 'none' : 'transform 220ms ease',
@@ -162,44 +197,65 @@ export function TaskItem({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
-        <div className="pt-[1px]" onPointerDown={(e) => e.stopPropagation()}>
-          <Checkbox
-            checked={false}
-            disabled={pending}
-            onCheckedChange={() => onComplete(task.uuid)}
-            aria-label="Mark task done"
-          />
-        </div>
+        <CheckCircle
+          done={done}
+          disabled={pending}
+          onToggle={() => onToggle(task, done)}
+        />
         <button
           type="button"
-          className="flex min-w-0 flex-1 flex-col gap-2 pt-[2px] text-left"
+          className="flex min-w-0 flex-1 flex-col items-start text-left"
           onClick={handleRowClick}
         >
-          <span className="text-[18.5px] font-medium leading-[1.4] text-foreground">
+          <span
+            className={cn(
+              'text-[17px] font-extrabold leading-[1.25]',
+              done ? 'text-disabled line-through' : 'text-ink',
+            )}
+          >
             {renderTitle(task.displayText)}
           </span>
-          {(dateToShow || task.status === 'Doing' || pending) && (
-            <span className="flex flex-wrap items-center gap-x-2 text-[14.5px] font-[450]">
-              {pending && <span className="text-faint">Queued</span>}
-              {task.status === 'Doing' && (
-                <span className="text-doing">In progress</span>
+          <span className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                'rounded-full px-2 py-[2px] text-[11px] font-extrabold uppercase tracking-[0.08em] text-white',
+                tagColor,
               )}
-              {dateToShow && (
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1',
-                    deadlineOverdue ? 'text-overdue' : 'text-faint',
-                  )}
-                >
-                  {task.deadline && !task.scheduledDate && (
-                    <Flag className="h-3.5 w-3.5" />
-                  )}
-                  {formatAnnadoDate(dateToShow)}
-                </span>
-              )}
+            >
+              {tagLabel}
             </span>
-          )}
+            {pending && (
+              <span className="text-[12px] font-extrabold text-disabled">
+                queued
+              </span>
+            )}
+            {!pending && task.status === 'Doing' && !done && (
+              <span className="text-[12px] font-extrabold text-doing">
+                doing
+              </span>
+            )}
+            <span
+              className={cn(
+                'text-[12px] font-extrabold',
+                whenLabel === 'overdue' && !done
+                  ? 'text-overdue'
+                  : 'text-disabled',
+              )}
+            >
+              {whenLabel}
+            </span>
+          </span>
         </button>
+        <span
+          className={cn(
+            'h-4 w-4 shrink-0 border-2 border-ink',
+            isErrand
+              ? 'rotate-45 rounded-[4px] bg-tangerine'
+              : 'rounded-full bg-accent',
+            done && 'opacity-25',
+          )}
+          aria-hidden
+        />
       </div>
     </div>
   )

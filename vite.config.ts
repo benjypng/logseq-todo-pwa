@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => {
           name: 'Logseq Todo',
           short_name: 'Todo',
           description: 'Logseq task manager PWA',
-          theme_color: '#1a1816',
-          background_color: '#faf8f4',
+          theme_color: '#FF3D8B',
+          background_color: '#FFF1F7',
           display: 'standalone',
           start_url: '/',
           icons: [

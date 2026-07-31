@@ -2,7 +2,12 @@
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["**", "!!**/dist", "!**/design_handoff_tasks_annado"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!**/design_handoff_tasks_annado",
+      "!**/design_handoff_candy_todo"
+    ]
   },
   "formatter": {
     "enabled": true,

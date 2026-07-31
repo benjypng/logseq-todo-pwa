@@ -1,4 +1,4 @@
-import { Briefcase, Inbox, ListTodo, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 import { useAddTask } from '../hooks/use-tasks'
@@ -8,15 +8,34 @@ import type { AddType } from '../types'
 interface AddComposerProps {
   open: boolean
   onClose: () => void
-  onSubmitted?: () => void
+  onSubmitted?: (type: AddType) => void
 }
 
-const DESTINATIONS: { type: AddType; label: string; Icon: typeof ListTodo }[] =
-  [
-    { type: 'task', label: 'Task', Icon: ListTodo },
-    { type: 'Errand', label: 'Errand', Icon: Briefcase },
-    { type: 'Inbox', label: 'Inbox', Icon: Inbox },
-  ]
+const FLAVOURS: {
+  type: AddType
+  label: string
+  shapeClass: string
+  shadow: string
+}[] = [
+  {
+    type: 'task',
+    label: 'Task',
+    shapeClass: 'rounded-full bg-accent',
+    shadow: '4px 4px 0 0 #FF3D8B',
+  },
+  {
+    type: 'Errand',
+    label: 'Errand',
+    shapeClass: 'rounded-[8px] bg-tangerine',
+    shadow: '4px 4px 0 0 #FF9F1C',
+  },
+  {
+    type: 'Inbox',
+    label: 'Inbox',
+    shapeClass: 'rounded-[50%_50%_46%_46%] bg-grape',
+    shadow: '4px 4px 0 0 #6A5CFF',
+  },
+]
 
 export function AddComposer({ open, onClose, onSubmitted }: AddComposerProps) {
   const [draft, setDraft] = useState('')
@@ -38,7 +57,7 @@ export function AddComposer({ open, onClose, onSubmitted }: AddComposerProps) {
   const submit = async (type: AddType) => {
     if (!canSubmit) return
     await addTask(draft.trim(), type)
-    onSubmitted?.()
+    onSubmitted?.(type)
     setDraft('')
     onClose()
   }
@@ -58,64 +77,61 @@ export function AddComposer({ open, onClose, onSubmitted }: AddComposerProps) {
         type="button"
         aria-label="Dismiss"
         onClick={onClose}
-        className="absolute inset-0 z-[5] cursor-default bg-[rgba(20,16,8,0.32)]"
-        style={{ animation: 'annadoScrimIn .2s ease' }}
+        className="absolute inset-0 z-[5] cursor-default bg-[rgba(42,27,61,0.55)]"
+        style={{ animation: 'candyScrimIn .2s ease' }}
       />
 
       <div
-        className="absolute inset-x-0 bottom-0 z-[6] flex flex-col gap-4 rounded-t-[28px] bg-background px-[22px] pt-6"
+        className="absolute inset-x-0 bottom-0 z-[6] flex flex-col gap-4 rounded-t-[36px] border-t-4 border-ink bg-background px-[22px] pt-[22px]"
         style={{
-          paddingBottom: 'calc(22px + env(safe-area-inset-bottom))',
-          boxShadow: '0 -18px 50px rgba(20,16,8,.22)',
-          animation: 'annadoSheetUp .32s cubic-bezier(.22,1,.36,1)',
+          paddingBottom: 'calc(30px + env(safe-area-inset-bottom))',
+          animation: 'candySheetUp .28s cubic-bezier(.22,1.2,.36,1)',
         }}
       >
         <div className="flex items-center">
-          <span className="whitespace-nowrap font-serif text-[26px] text-foreground">
-            New item
+          <span className="whitespace-nowrap font-display text-[28px] font-semibold text-ink">
+            Feed me a task
           </span>
           <button
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="ml-auto inline-flex text-muted-foreground"
+            className="ml-auto flex h-[38px] w-[38px] items-center justify-center rounded-full border-[3px] border-ink bg-card text-ink"
           >
-            <X className="h-[22px] w-[22px]" strokeWidth={2} />
+            <X className="h-[18px] w-[18px]" strokeWidth={2.6} />
           </button>
         </div>
 
-        <div className="flex items-center gap-2.5 rounded-2xl border border-accent bg-field px-5 py-[18px]">
-          <input
-            ref={inputRef}
-            type="text"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="What needs doing?"
-            className="min-w-0 flex-1 border-none bg-transparent text-[16.5px] font-[450] text-foreground outline-none placeholder:text-muted-foreground"
-          />
-        </div>
+        <input
+          ref={inputRef}
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="What are we chewing on?"
+          className="w-full rounded-[20px] border-[3px] border-ink bg-card px-[18px] py-4 text-[17px] font-bold text-ink shadow-[4px_4px_0_0_#FF3D8B] outline-none placeholder:text-muted-foreground"
+        />
 
         <div className="flex flex-col gap-[9px]">
-          <span className="text-[12.5px] font-bold uppercase tracking-[0.09em] text-muted-foreground">
-            {canSubmit ? 'Add as' : 'Type something, then pick a type'}
+          <span className="text-[12px] font-extrabold uppercase tracking-[0.1em] text-muted-foreground">
+            Pick a flavour
           </span>
-          <div className="flex gap-2.5">
-            {DESTINATIONS.map(({ type, label, Icon }) => (
+          <div className="grid grid-cols-3 gap-[10px]">
+            {FLAVOURS.map(({ type, label, shapeClass, shadow }) => (
               <button
                 key={type}
                 type="button"
-                disabled={!canSubmit}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => submit(type)}
                 className={cn(
-                  'flex flex-1 flex-col items-center gap-2 rounded-2xl border-[1.5px] border-transparent bg-seg-idle px-1.5 py-[18px] text-[14.5px] font-semibold transition-[background-color,border-color,transform] duration-150 active:scale-[0.96]',
-                  canSubmit
-                    ? 'cursor-pointer text-foreground hover:border-accent hover:bg-accent-soft hover:text-accent'
-                    : 'cursor-default text-muted-foreground opacity-50',
+                  'flex flex-col items-center gap-2 rounded-[22px] border-[3px] border-ink bg-card py-4 font-display text-[16px] font-semibold text-ink transition-opacity',
+                  !canSubmit && 'opacity-40',
                 )}
+                style={{ boxShadow: shadow }}
               >
-                <Icon className="h-[23px] w-[23px]" strokeWidth={1.8} />
+                <span
+                  className={cn('h-7 w-7 border-[3px] border-ink', shapeClass)}
+                />
                 <span>{label}</span>
               </button>
             ))}

@@ -114,7 +114,9 @@ export interface FocusModeProps {
 
 export interface TaskItemProps {
   task: Task
-  onComplete: (uuid: string) => void
+  done: boolean
+  whenLabel: string
+  onToggle: (task: Task, done: boolean) => void
   onToggleToday: (uuid: string, clear: boolean) => void
   onEnterFocus: (uuid: string) => void
   isNew?: boolean
@@ -123,5 +125,4 @@ export interface TaskItemProps {
 export interface BottomTabBarProps {
   active: BottomTab
   onChange: (tab: BottomTab) => void
-  onAdd: () => void
 }

@@ -1,4 +1,4 @@
-import { isSameDay, startOfDay } from 'date-fns'
+import { isSameDay, isSameWeek, startOfDay } from 'date-fns'
 
 export function isToday(date: Date | null): boolean {
   if (!date) return false
@@ -37,4 +37,17 @@ function ordinal(n: number): string {
 
 export function formatAnnadoDate(date: Date): string {
   return `${MONTHS_SHORT[date.getMonth()]} ${ordinal(date.getDate())}, ${date.getFullYear()}`
+}
+
+export function dueLabel(
+  scheduledDate: Date | null,
+  deadline: Date | null,
+  now: Date = new Date(),
+): string {
+  const date = scheduledDate ?? deadline
+  if (!date) return 'no date'
+  if (isSameDay(date, now)) return 'today'
+  if (startOfDay(date).getTime() < startOfDay(now).getTime()) return 'overdue'
+  if (isSameWeek(date, now, { weekStartsOn: 1 })) return 'this week'
+  return `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}`
 }

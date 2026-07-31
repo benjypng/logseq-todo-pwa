@@ -5,12 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1c1f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FF3D8B" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;450;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,18 +18,7 @@
     <meta name="apple-mobile-web-app-title" content="Todo" />
     <title>logseq-todo-pwa</title>
     <script>
-      // Apply theme class before paint to avoid FOUC.
-      (function () {
-        try {
-          var stored = localStorage.getItem('theme')
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          var dark = stored === 'dark' || (!stored && prefersDark)
-          if (dark) document.documentElement.classList.add('dark')
-          document.documentElement.style.backgroundColor = dark ? '#1a1c1f' : '#f5f3ee'
-        } catch (_) {
-          /* localStorage may be unavailable */
-        }
-      })()
+      document.documentElement.style.backgroundColor = '#FFF1F7'
     </script>
   </head>
   <body>
